@@ -16,6 +16,7 @@ from .actions import (
     find_cli_action,
     validate_cli_action,
     batch_validate_cli_action,
+    batch_replace_cli_action,
     update_cli_action,
     delete_cli_action,
 )
@@ -239,6 +240,23 @@ batch_validate_action.add_argument(
     help=_('JSON format file'),
 )
 
+# batch-replace subcommand
+batch_replace_action = subparsers.add_parser(
+    'batch-replace',
+    help=_('batch replace items from a JSON file'),
+    parents=[
+        common_args,
+        ro_config_args,
+    ]
+)
+batch_replace_action.set_defaults(action=batch_replace_cli_action)
+batch_replace_action.add_argument(
+    'source_file',
+    metavar='JSON_FILE',
+    type=argparse.FileType('r'),
+    help=_('JSON format file'),
+)
+
 # create subcommand
 create_action = subparsers.add_parser(
     'create',
@@ -257,7 +275,7 @@ update_action = subparsers.add_parser(
     help=_('update an existing rotue'),
     parents=[
         common_args,
-        ro_config_args,
+        rw_config_args,
         create_validate_update_parser,
     ]
 )
@@ -269,7 +287,7 @@ delete_action = subparsers.add_parser(
     help=_('delete routes by filter'),
     parents=[
         common_args,
-        ro_config_args,
+        rw_config_args,
         retrieve_delete_parser,
     ]
 )

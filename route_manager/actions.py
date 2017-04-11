@@ -12,6 +12,11 @@ from __future__ import (
 import gettext
 import json
 import logging
+import shutil
+import os
+import string
+
+from collections import defaultdict
 
 from . import routes
 
@@ -25,11 +30,88 @@ trans = gettext.translation(__name__, 'locale', fallback=True)
 _ = trans.gettext
 
 
+HEADER = '''\
+##
+#   This file was automatically generated
+#
+
+class netroutes::routes {\
+'''
+
+FOOTER = '}'
+
+TEMPLATE = '''\
+  network_route {{ {name}:
+    ensure    => {ensure},
+    gateway   => {gateway},
+    interface => {interface},
+    netmask   => {netmask},
+    network   => {network},
+    options   => {options},
+  }}\
+'''
+
 # core functionality
 
+
+class RouteFormatter(string.Formatter):
+    """Silently skips missing values by inserting empty strings."""
+
+    def __init__(self, missing='', var='$'):
+        """Optionally initialized with a ``missing`` placeholder string."""
+        self.missing = repr(missing)
+        self.var = var
+
+    def get_field(self, field_name, *args, **kwargs):
+        """Quietly return ``None`` for missing keys and attributes."""
+        try:
+            value, field = super(self.__class__, self).get_field(field_name, *args, **kwargs)
+        except (KeyError, AttributeError):
+            return None, field_name
+        if (isinstance(value, str) and not value.startswith(self.var)):
+            value = repr(value)
+        return value, field
+
+    def format_field(self, value, spec):
+        """Insert the ``missing`` placeholder if value is falsy."""
+        if value is None:
+            value = self.missing
+        return super(self.__class__, self).format_field(value, spec)
+
+
+def do_backup(route_file, suffix='.backup', copy_file=shutil.copy2):
+    # this is probably redundant...
+    _dir = os.path.dirname(route_file)
+    original = os.path.basename(route_file)
+    backup = os.path.join(_dir, original + suffix)
+    #
+    log.info(_('backing up file %r -> %r'), original, backup)
+    copy_file(original, backup)
+
+
+def rewrite_routes(
+        routes,
+        route_file,
+        backup=True,
+        header=HEADER,
+        template=TEMPLATE,
+        footer=FOOTER):
+    entry_fmt = RouteFormatter()
+    if backup:
+        do_backup(route_file)
+    log.info(_('rewriting routes to file %r'), route_file)
+    with open(route_file, 'w') as fw:
+        if header:
+            print(header, file=fw)
+        for route in routes:
+            print(entry_fmt.format(template, **route), file=fw)
+        if footer:
+            print(footer, file=fw)
+
+
 def list_items(*args, route_file, **kwargs):
-    log.info(_('parsing routes from route file'))
     current_routes = routes.parse_routes(route_file)
+    log.info(_('parsing routes from route file'))
     log.info(_('listing all items'))
     result = {'routes': list(current_routes)}
     return json.dumps(result, indent=2)
@@ -43,11 +125,11 @@ def find_items(
         ignore_case,
         exact_match,
         **kwargs):
-    log.info(_('parsing routes from route file'))
     current_routes = routes.parse_routes(route_file)
-    log.info(_('showing items matching filter: %s=%r'), key, value)
+    log.info(_('creating a route filter: %s=%r'), key, value)
     found_routes = routes.find_routes(current_routes, value, key,
                                       ignore_case, exact_match)
+    log.info(_('parsing routes from route file'))
     result = {'routes': list(found_routes)}
     return json.dumps(result, indent=2)
 
@@ -99,6 +181,23 @@ def batch_validate_items(
     return json.dumps(result, indent=2)
 
 
+def batch_replace_items(
+        *args,
+        route_file,
+        source_file,
+        **kwargs):
+    log.info(_('loading routes from JSON'))
+    src_routes = list(json.load(source_file)['routes'])
+    route_file_name = route_file.name
+    log.info(_('closing file %r'), route_file_name)
+    # close the file to truncate and reopen for writing later
+    route_file.close()
+    log.info(_('batch replacing routes'))
+    rewrite_routes(src_routes, route_file_name)
+    result = {'routes': src_routes}
+    return json.dumps(result, indent=2)
+
+
 def create_or_update_item(
         *args,
         route_file,
@@ -136,6 +235,11 @@ def create_or_update_item(
         old_name = existing_route['name']
         log.info(_('updating existing route %s=%r'), 'name', old_name)
         existing_route.update(route)
+    route_file_name = route_file.name
+    log.info(_('closing file %r'), route_file_name)
+    # close the file to truncate and reopen for writing later
+    route_file.close()
+    rewrite_routes(current_routes, route_file_name)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
@@ -163,7 +267,7 @@ def update_item(
     log.info(_('parsing routes from route file'))
     current_routes = list(routes.parse_routes(route_file))
     log.info(_('looking up if the route already exists'))
-    existing_routes = list(routes.check_exists(current_routes, route))
+    existing_routes = list(routes.find_existing(current_routes, route))
     if not existing_routes:
         raise routes.RouteNotFoundError(_(
                 'Unable to update. No route matching criteria found.'))
@@ -175,6 +279,11 @@ def update_item(
     old_name = existing_route['name']
     log.info(_('updating existing route %s=%r'), 'name', old_name)
     existing_route.update(route)
+    route_file_name = route_file.name
+    log.info(_('closing file %r'), route_file_name)
+    # close the file to truncate and reopen for writing later
+    route_file.close()
+    rewrite_routes(current_routes, route_file_name)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
@@ -186,12 +295,18 @@ def delete_items(
         ignore_case,
         exact_match,
         **kwargs):
-    log.info(_('parsing routes from route file'))
     current_routes = routes.parse_routes(route_file)
-    log.info(_('deleting items matching filter: %s=%r'), key, value)
-    new_routes = routes.delete_routes(current_routes, value, key,
-                                      ignore_case, exact_match)
-    result = {'routes': list(new_routes)}
+    log.info(_('parsing routes from route file'))
+    log.info(_('filtering out items matching filter: %s=%r'), key, value)
+    new_routes = list(routes.delete_routes(current_routes, value, key,
+                                           ignore_case, exact_match))
+    route_file_name = route_file.name
+    log.info(_('closing file %r'), route_file_name)
+    # close the file to truncate and reopen for writing later
+    route_file.close()
+    # Rewrite the route file from filtered entries
+    rewrite_routes(new_routes, route_file_name)
+    result = {'routes': new_routes}
     return json.dumps(result, indent=2)
 
 
@@ -208,9 +323,13 @@ def find_cli_action(*args, out_file, **kwargs):
 def validate_cli_action(*args, out_file, **kwargs):
     print(validate_item(*args, **kwargs), file=out_file)
 
-    
+
 def batch_validate_cli_action(*args, out_file, **kwargs):
     print(batch_validate_items(*args, **kwargs), file=out_file)
+
+
+def batch_replace_cli_action(*args, out_file, **kwargs):
+    print(batch_replace_items(*args, **kwargs), file=out_file)
 
 
 def create_cli_action(*args, out_file, **kwargs):
