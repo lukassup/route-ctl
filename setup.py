@@ -7,13 +7,13 @@ setup(
   author="Lukas Šupienis <lukassup@yahoo.com>",
   license="MIT",
   version="0.1.0",
-  name="route-manager",
+  name="route-ctl",
   packages=[
-    "route_manager"
+    "route_ctl"
   ],
   entry_points={
     "console_scripts": [
-      "route-ctl = route_manager.cli:main"
+      "route-ctl = route_ctl.cli:main"
     ],
   },
 )
