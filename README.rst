@@ -1,7 +1,7 @@
 route-cli
 =========
 
-```route-cli`` is a Python CLI Puppet routes resource manager.
+``route-cli`` is a Python CLI Puppet routes resource manager.
 
 .. _installation:
 
