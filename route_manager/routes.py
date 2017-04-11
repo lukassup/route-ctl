@@ -9,7 +9,6 @@ from __future__ import (
     with_statement,    # Python 2.5+
 )
 
-import json
 import re
 
 try:
@@ -192,13 +191,11 @@ def parse_routes(lines,
             raise StopIteration
 
 
-def find_routes(lines,
+def find_routes(routes,
                 value,
                 key='name',
                 ignore_case=False,
-                exact_match=True,
-                block_head=ROUTE_BLOCK_HEAD,
-                block_item=ROUTE_BLOCK_ITEM):
+                exact_match=True):
     """Itertively find all routes in an iterable of strings (e.g. a file)."""
 
     if exact_match and not ignore_case:
@@ -215,8 +212,31 @@ def find_routes(lines,
             def matcher(item, key=key, regexp=regexp):
                 return regexp.search(item.get(key))
 
-    routes = parse_routes(lines)
     return filter(matcher, routes)
+
+
+def delete_routes(routes,
+                  value,
+                  key='name',
+                  ignore_case=False,
+                  exact_match=True):
+    """Delete all routes matching criteria."""
+
+    if exact_match and not ignore_case:
+        def no_matcher(item, key=key, value=value):
+            return not item.get(key) == value
+    else:
+        flags = re.IGNORECASE if ignore_case else 0
+        regexp = re.compile(value, flags=flags)
+
+        if exact_match:
+            def no_matcher(item, key=key, regexp=regexp):
+                return not regexp.match(item.get(key))
+        else:
+            def no_matcher(item, key=key, regexp=regexp):
+                return not regexp.search(item.get(key))
+
+    return filter(no_matcher, routes)
 
 
 def find_existing(routes, route):
@@ -287,9 +307,3 @@ def validate_routes(current_routes, input_routes):
             validated[key] = input_route[key] == found_route.get(key)
         results.append({'input': input_route, 'output': validated})
     return results
-
-
-if __name__ == '__main__':
-    print('Parsing routes...')
-    parsed_routes = {'routes': list(parse_routes(ROUTE_FILE))}
-    print(json.dumps(parsed_routes, indent=2))

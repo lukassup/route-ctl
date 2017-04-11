@@ -13,7 +13,7 @@ setup(
   ],
   entry_points={
     "console_scripts": [
-      "route-cli = route_manager.cli:main"
+      "route-ctl = route_manager.cli:main"
     ],
   },
 )

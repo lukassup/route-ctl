@@ -15,6 +15,7 @@ from .actions import (
     create_cli_action,
     find_cli_action,
     validate_cli_action,
+    batch_validate_cli_action,
     update_cli_action,
     delete_cli_action,
 )
@@ -70,7 +71,7 @@ ro_config_args.add_argument(
     dest='route_file',
     type=argparse.FileType('r'),
     default=os.environ.get('ROUTE_FILE'),
-    help=_('input file (default: ROUTE_FILE envvar)'),
+    help=_('route file (default: ROUTE_FILE envvar)'),
 )
 
 rw_config_args = argparse.ArgumentParser(add_help=False)
@@ -81,7 +82,7 @@ rw_config_args.add_argument(
     dest='route_file',
     type=argparse.FileType('r+'),
     default=os.environ.get('ROUTE_FILE'),
-    help=_('input file (default: ROUTE_FILE envvar)'),
+    help=_('route file (default: ROUTE_FILE envvar)'),
 )
 
 retrieve_delete_parser = argparse.ArgumentParser(add_help=False)
@@ -189,7 +190,7 @@ help_action.set_defaults(action=lambda *_, **__: parser.print_help())
 # list subcommand
 list_action = subparsers.add_parser(
     'list',
-    help=_('list all items'),
+    help=_('list all routes'),
     parents=[
         common_args,
         ro_config_args,
@@ -200,7 +201,7 @@ list_action.set_defaults(action=list_cli_action)
 # find subcommand
 find_action = subparsers.add_parser(
     'find',
-    help=_('find items by a value'),
+    help=_('find routes by filter'),
     parents=[
         common_args,
         ro_config_args,
@@ -212,7 +213,7 @@ find_action.set_defaults(action=find_cli_action)
 # validate subcommand
 validate_action = subparsers.add_parser(
     'validate',
-    help=_('validate a new item'),
+    help=_('validate a route from CLI arguments'),
     parents=[
         common_args,
         ro_config_args,
@@ -221,10 +222,27 @@ validate_action = subparsers.add_parser(
 )
 validate_action.set_defaults(action=validate_cli_action)
 
+# batch-validate subcommand
+batch_validate_action = subparsers.add_parser(
+    'batch-validate',
+    help=_('batch validate items from a JSON file'),
+    parents=[
+        common_args,
+        ro_config_args,
+    ]
+)
+batch_validate_action.set_defaults(action=batch_validate_cli_action)
+batch_validate_action.add_argument(
+    'source_file',
+    metavar='JSON_FILE',
+    type=argparse.FileType('r'),
+    help=_('JSON format file'),
+)
+
 # create subcommand
 create_action = subparsers.add_parser(
     'create',
-    help=_('create a new item'),
+    help=_('create or update a route'),
     parents=[
         common_args,
         rw_config_args,
@@ -236,7 +254,7 @@ create_action.set_defaults(action=create_cli_action)
 # update subcommand
 update_action = subparsers.add_parser(
     'update',
-    help=_('update an item'),
+    help=_('update an existing rotue'),
     parents=[
         common_args,
         ro_config_args,
@@ -248,7 +266,7 @@ update_action.set_defaults(action=update_cli_action)
 # delete subcommand
 delete_action = subparsers.add_parser(
     'delete',
-    help=_('delete items by IDs'),
+    help=_('delete routes by filter'),
     parents=[
         common_args,
         ro_config_args,
@@ -262,9 +280,9 @@ def main():
     """CLI entrypoint."""
     args = parser.parse_args()
     log_level = max(logging.DEBUG, min(logging.CRITICAL, sum(args.verbosity)))
-    debug = log_level <= logging.DEBUG
+    debug_on = log_level <= logging.DEBUG
     logging.basicConfig(level=log_level)
     try:
         args.action(**vars(args))
     except Exception as e:
-        log.exception(e, exc_info=debug)
+        log.exception(e, exc_info=debug_on)

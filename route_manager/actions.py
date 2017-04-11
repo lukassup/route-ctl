@@ -28,21 +28,41 @@ _ = trans.gettext
 # core functionality
 
 def list_items(*args, route_file, **kwargs):
+    log.info(_('parsing routes from route file'))
+    current_routes = routes.parse_routes(route_file)
     log.info(_('listing all items'))
-    result = list(routes.parse_routes(route_file))
-    return json.dumps({'routes': result}, indent=2)
+    result = {'routes': list(current_routes)}
+    return json.dumps(result, indent=2)
 
 
-def find_items(*args, route_file, value, key, ignore_case, exact_match,
-               **kwargs):
-    log.info(_('showing items matching filter: %s=%r'), value, key)
-    result = list(routes.find_routes(route_file, value, key, ignore_case, exact_match))
-    return json.dumps({'routes': result}, indent=2)
+def find_items(
+        *args,
+        route_file,
+        value,
+        key,
+        ignore_case,
+        exact_match,
+        **kwargs):
+    log.info(_('parsing routes from route file'))
+    current_routes = routes.parse_routes(route_file)
+    log.info(_('showing items matching filter: %s=%r'), key, value)
+    found_routes = routes.find_routes(current_routes, value, key,
+                                      ignore_case, exact_match)
+    result = {'routes': list(found_routes)}
+    return json.dumps(result, indent=2)
 
 
-def validate_item(*args, route_file, name, ensure=None, gateway=None,
-                  interface=None, network=None, netmask=None, options=None,
-                  **kwargs):
+def validate_item(
+        *args,
+        route_file,
+        name,
+        ensure=None,
+        gateway=None,
+        interface=None,
+        network=None,
+        netmask=None,
+        options=None,
+        **kwargs):
     route = {'name': name}
     if ensure:
         route['ensure'] = ensure
@@ -60,15 +80,36 @@ def validate_item(*args, route_file, name, ensure=None, gateway=None,
     current_routes = routes.parse_routes(route_file)
     log.info(_('validating item %r'), name)
     validated = routes.validate_route(current_routes, route)
-    result = {
-        'input': route,
-        'output': validated,
-    }
+    result = {'input': route, 'output': validated}
     return json.dumps(result, indent=2)
 
 
-def create_or_update_item(*args, route_file, name, ensure, gateway, interface,
-                          network, netmask, options=None, **kwargs):
+def batch_validate_items(
+        *args,
+        route_file,
+        source_file,
+        **kwargs):
+    log.info(_('loading routes from JSON'))
+    src_routes = json.load(source_file)['routes']
+    log.info(_('parsing routes from route file'))
+    current_routes = routes.parse_routes(route_file)
+    log.info(_('batch validating routes'))
+    validated = routes.validate_routes(current_routes, src_routes)
+    result = {'routes': list(validated)}
+    return json.dumps(result, indent=2)
+
+
+def create_or_update_item(
+        *args,
+        route_file,
+        name,
+        ensure,
+        gateway,
+        interface,
+        network,
+        netmask,
+        options=None,
+        **kwargs):
     route = {
         'name': name,
         'ensure': ensure,
@@ -98,8 +139,17 @@ def create_or_update_item(*args, route_file, name, ensure, gateway, interface,
     return json.dumps({'routes': current_routes}, indent=2)
 
 
-def update_item(*args, route_file, name, ensure, gateway, interface, network,
-                netmask, options=None, **kwargs):
+def update_item(
+        *args,
+        route_file,
+        name,
+        ensure,
+        gateway,
+        interface,
+        network,
+        netmask,
+        options=None,
+        **kwargs):
     route = {
         'name': name,
         'ensure': ensure,
@@ -122,14 +172,27 @@ def update_item(*args, route_file, name, ensure, gateway, interface, network,
                 'Unable to update. '
                 'More than one route matching criteria exist.'))
     existing_route = existing_routes[0]
-    log.info(_('updating existing route %s=%r'), 'name', existing_route['name'])
+    old_name = existing_route['name']
+    log.info(_('updating existing route %s=%r'), 'name', old_name)
     existing_route.update(route)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
-def delete_items(*args, route_file, value, key, ignore_case, exact_match,
-                 **kwargs):
-    log.info(_('deleting items matching filter: %s=%r'), value, key)
+def delete_items(
+        *args,
+        route_file,
+        value,
+        key,
+        ignore_case,
+        exact_match,
+        **kwargs):
+    log.info(_('parsing routes from route file'))
+    current_routes = routes.parse_routes(route_file)
+    log.info(_('deleting items matching filter: %s=%r'), key, value)
+    new_routes = routes.delete_routes(current_routes, value, key,
+                                      ignore_case, exact_match)
+    result = {'routes': list(new_routes)}
+    return json.dumps(result, indent=2)
 
 
 # CLI wrappers
@@ -144,6 +207,10 @@ def find_cli_action(*args, out_file, **kwargs):
 
 def validate_cli_action(*args, out_file, **kwargs):
     print(validate_item(*args, **kwargs), file=out_file)
+
+    
+def batch_validate_cli_action(*args, out_file, **kwargs):
+    print(batch_validate_items(*args, **kwargs), file=out_file)
 
 
 def create_cli_action(*args, out_file, **kwargs):
