@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/lukassup/route-ctl.svg?branch=master)](https://travis-ci.org/lukassup/route-ctl)
+
 route-cli
 =========
 
