@@ -109,7 +109,7 @@ def rewrite_routes(
             print(footer, file=fw)
 
 
-def list_items(*args, route_file, **kwargs):
+def list_items(route_file, *args, **kwargs):
     current_routes = routes.parse_routes(route_file)
     log.info(_('parsing routes from route file'))
     log.info(_('listing all items'))
@@ -118,12 +118,12 @@ def list_items(*args, route_file, **kwargs):
 
 
 def find_items(
-        *args,
         route_file,
         value,
         key,
         ignore_case,
         exact_match,
+        *args,
         **kwargs):
     current_routes = routes.parse_routes(route_file)
     log.info(_('creating a route filter: %s=%r'), key, value)
@@ -135,7 +135,6 @@ def find_items(
 
 
 def validate_item(
-        *args,
         route_file,
         name,
         ensure=None,
@@ -144,6 +143,7 @@ def validate_item(
         network=None,
         netmask=None,
         options=None,
+        *args,
         **kwargs):
     route = {'name': name}
     if ensure:
@@ -167,9 +167,9 @@ def validate_item(
 
 
 def batch_validate_items(
-        *args,
         route_file,
         source_file,
+        *args,
         **kwargs):
     log.info(_('loading routes from JSON'))
     src_routes = json.load(source_file)['routes']
@@ -182,9 +182,9 @@ def batch_validate_items(
 
 
 def batch_replace_items(
-        *args,
         route_file,
         source_file,
+        *args,
         **kwargs):
     log.info(_('loading routes from JSON'))
     src_routes = list(json.load(source_file)['routes'])
@@ -199,7 +199,6 @@ def batch_replace_items(
 
 
 def create_or_update_item(
-        *args,
         route_file,
         name,
         ensure,
@@ -208,6 +207,7 @@ def create_or_update_item(
         network,
         netmask,
         options=None,
+        *args,
         **kwargs):
     route = {
         'name': name,
@@ -244,7 +244,6 @@ def create_or_update_item(
 
 
 def update_item(
-        *args,
         route_file,
         name,
         ensure,
@@ -253,6 +252,7 @@ def update_item(
         network,
         netmask,
         options=None,
+        *args,
         **kwargs):
     route = {
         'name': name,
@@ -288,12 +288,12 @@ def update_item(
 
 
 def delete_items(
-        *args,
         route_file,
         value,
         key,
         ignore_case,
         exact_match,
+        *args,
         **kwargs):
     current_routes = routes.parse_routes(route_file)
     log.info(_('parsing routes from route file'))
@@ -312,33 +312,33 @@ def delete_items(
 
 # CLI wrappers
 
-def list_cli_action(*args, out_file, **kwargs):
+def list_cli_action(out_file, *args, **kwargs):
     print(list_items(*args, **kwargs), file=out_file)
 
 
-def find_cli_action(*args, out_file, **kwargs):
+def find_cli_action(out_file, *args, **kwargs):
     print(find_items(*args, **kwargs), file=out_file)
 
 
-def validate_cli_action(*args, out_file, **kwargs):
+def validate_cli_action(out_file, *args, **kwargs):
     print(validate_item(*args, **kwargs), file=out_file)
 
 
-def batch_validate_cli_action(*args, out_file, **kwargs):
+def batch_validate_cli_action(out_file, *args, **kwargs):
     print(batch_validate_items(*args, **kwargs), file=out_file)
 
 
-def batch_replace_cli_action(*args, out_file, **kwargs):
+def batch_replace_cli_action(out_file, *args, **kwargs):
     print(batch_replace_items(*args, **kwargs), file=out_file)
 
 
-def create_cli_action(*args, out_file, **kwargs):
+def create_cli_action(out_file, *args, **kwargs):
     print(create_or_update_item(*args, **kwargs), file=out_file)
 
 
-def update_cli_action(*args, out_file, **kwargs):
+def update_cli_action(out_file, *args, **kwargs):
     print(update_item(*args, **kwargs), file=out_file)
 
 
-def delete_cli_action(*args, out_file, **kwargs):
+def delete_cli_action(out_file, *args, **kwargs):
     print(delete_items(*args, **kwargs), file=out_file)
