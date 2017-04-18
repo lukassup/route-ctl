@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import (
     absolute_import,   # Python 2.5+
     print_function,    # Python 2.6+
@@ -7,7 +9,6 @@ from __future__ import (
 
 import unittest
 
-import json
 try:
     from io import StringIO
 except ImportError:
@@ -91,9 +92,6 @@ class TestRouteParserValid(unittest.TestCase):
     def setUp(self):
         self.route_file = StringIO(VALID_ROUTE_FILE)
 
-    def tearDown(self):
-        pass
-
     def test_parse_first_route(self):
         """First parsed route is correct."""
         self.assertEqual(
@@ -115,11 +113,8 @@ class TestRouteParserMissingCloseBrace(unittest.TestCase):
     def setUp(self):
         self.route_file = StringIO(MISSING_CLOSE_BRACE_FILE)
 
-    def tearDown(self):
-        pass
-
     def test_missing_close_brace(self):
-        """Correct exception is raised when missing clsoe brace."""
+        """Correct exception is raised when missing close brace."""
         # NOTE: Python 2.6 does not understand the `assertRaises` context mgr
         self.assertRaises(
             routes.EndTokenNotFoundError,
@@ -133,9 +128,6 @@ class TestRouteParserMissingOpenBrace(unittest.TestCase):
 
     def setUp(self):
         self.route_file = StringIO(MISSING_OPEN_BRACE_FILE)
-
-    def tearDown(self):
-        pass
 
     def test_missing_open_brace(self):
         """Correct exception is raised when missing close brace."""

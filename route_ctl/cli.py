@@ -31,6 +31,10 @@ trans = gettext.translation(__name__, 'locale', fallback=True)
 _ = trans.gettext
 
 
+def _help(*args, **kwargs):
+    parser.print_help()
+    parser.exit()
+
 # generics
 
 parser = argparse.ArgumentParser()
@@ -186,7 +190,8 @@ help_action = subparsers.add_parser(
         common_args,
     ]
 )
-help_action.set_defaults(action=lambda *_, **__: parser.print_help())
+
+help_action.set_defaults(action=_help)
 
 # list subcommand
 list_action = subparsers.add_parser(
