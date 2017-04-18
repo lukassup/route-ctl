@@ -120,8 +120,12 @@ class TestRouteParserMissingCloseBrace(unittest.TestCase):
 
     def test_missing_close_brace(self):
         """Correct exception is raised when missing clsoe brace."""
-        with self.assertRaises(routes.EndTokenNotFoundError):
-            routes.parse_route(self.route_file)
+        # NOTE: Python 2.6 does not understand the `assertRaises` context mgr
+        self.assertRaises(
+            routes.EndTokenNotFoundError,
+            routes.parse_route,  # test func
+            self.route_file      # arg
+        )
 
 
 class TestRouteParserMissingOpenBrace(unittest.TestCase):
@@ -135,5 +139,9 @@ class TestRouteParserMissingOpenBrace(unittest.TestCase):
 
     def test_missing_open_brace(self):
         """Correct exception is raised when missing close brace."""
-        with self.assertRaises(routes.StartTokenNotFoundError):
-            routes.parse_route(self.route_file)
+        # NOTE: Python 2.6 does not understand the `assertRaises` context mgr
+        self.assertRaises(
+            routes.StartTokenNotFoundError,
+            routes.parse_route,  # test func
+            self.route_file      # arg
+        )
