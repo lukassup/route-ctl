@@ -1,0 +1,6 @@
+
+include CHANGES.rst COPYING README.rst
+include docs/Makefile
+recursive-include docs *.png *.py *.rst
+recursive-include tests *.py
+recursive-include tests/files *

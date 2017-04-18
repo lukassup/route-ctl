@@ -9,12 +9,12 @@ setup(
   url="https://github.com/lukassup/route-ctl.git",
   version="0.1.0",
   name="route-ctl",
-  packages=[
-    "route_ctl"
-  ],
+  packages=find_packages(exclude=['tests']),
   entry_points={
     "console_scripts": [
       "route-ctl = route_ctl.cli:main"
     ],
   },
+  test_suite='tests',
+  zip_safe=True,
 )
