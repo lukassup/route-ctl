@@ -11,13 +11,6 @@ from __future__ import (
 
 import re
 
-try:
-    # Python 3
-    from io import StringIO
-except ImportError:
-    # Python 2
-    from cStringIO import StringIO
-
 
 R = re.compile
 
@@ -70,29 +63,6 @@ ROUTE_BLOCK_ITEM = R(
     $
     ''',
     flags=re.VERBOSE)
-
-ROUTE_FILE = StringIO('''\
-# a comment
-class netroutes::routes {               # comment
-  network_route { '172.17.67.0/24':     # comment
-    ensure    => 'present',             # comment
-    gateway   => '10.0.2.2',            # comment
-    interface => 'eth0',                # comment
-    netmask   => '255.255.255.0',       # comment
-    network   => '172.17.67.0',         # comment
-    options   => 'table 200',           # comment
-  }  # comment
-  network_route { 'default':
-    ensure    => 'present',
-    # ensure    => 'absent',
-    gateway   => '10.0.2.2',
-    # gateway   => '10.0.3.3',
-    interface => $appout,
-    netmask   => '0.0.0.0',
-    network   => 'default'
-  }  # end route
-}  # end file
-''')
 
 
 class RouteError(Exception):
@@ -180,15 +150,13 @@ def parse_routes(lines,
         route = parse_route(lines, block_head, block_item)
         yield route
     except StartTokenNotFoundError:
-        # return  # Python 3.5+
-        raise StopIteration
+        return
     while route:
         try:
             route = parse_route(lines, block_head, block_item)
             yield route
         except StartTokenNotFoundError:
-            # return  # Python 3.5+
-            raise StopIteration
+            return
 
 
 def find_routes(routes,
