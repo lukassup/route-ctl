@@ -1,0 +1,10 @@
+FROM centos:7
+MAINTAINER Lukas Šupienis <lukassup@yahoo.com>
+RUN yum install -y python-setuptools && yum clean all
+RUN easy_install pip
+RUN pip install -U setuptools wheel
+ADD ./ /code/
+WORKDIR /code/
+RUN pip install .
+CMD python setup.py test
+
