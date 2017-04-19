@@ -79,15 +79,11 @@ class RouteFormatter(string.Formatter):
         return super(self.__class__, self).format_field(value, spec)
 
 
-def do_backup(route_file, suffix='.backup', copy_file=shutil.copy2):
-    if not os.path.exists(route_file) or not os.path.isfile(route_file):
+def do_backup(original, suffix='.backup', copy_file=shutil.copy2):
+    if not os.path.exists(original) or not os.path.isfile(original):
         log.info(_('no backup needed'))
     else:
-        # this is probably redundant...
-        _dir = os.path.dirname(route_file)
-        original = os.path.basename(route_file)
-        backup = os.path.join(_dir, original + suffix)
-        #
+        backup = original + suffix
         log.info(_('backing up file %r -> %r'), original, backup)
         copy_file(original, backup)
 
