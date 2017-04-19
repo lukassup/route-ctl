@@ -93,14 +93,14 @@ class TestRouteParserValid(unittest.TestCase):
         self.route_file = StringIO(VALID_ROUTE_FILE)
 
     def test_parse_first_route(self):
-        """First parsed route is correct."""
+        """First parsed route should be correct."""
         self.assertEqual(
             routes.parse_route(self.route_file),
             VALID_ROUTES[0]
         )
 
     def test_parse_all_routes(self):
-        """All of the parsed routes are correct."""
+        """All of the parsed routes should be correct."""
         self.assertEqual(
             list(routes.parse_routes(self.route_file)),
             VALID_ROUTES
@@ -114,7 +114,7 @@ class TestRouteParserMissingCloseBrace(unittest.TestCase):
         self.route_file = StringIO(MISSING_CLOSE_BRACE_FILE)
 
     def test_missing_close_brace(self):
-        """Correct exception is raised when missing close brace."""
+        """Correct exception should be raised when missing a close brace."""
         # NOTE: Python 2.6 does not understand the `assertRaises` context mgr
         self.assertRaises(
             routes.EndTokenNotFoundError,
@@ -130,7 +130,7 @@ class TestRouteParserMissingOpenBrace(unittest.TestCase):
         self.route_file = StringIO(MISSING_OPEN_BRACE_FILE)
 
     def test_missing_open_brace(self):
-        """Correct exception is raised when missing close brace."""
+        """Correct exception should be raised when missing a close brace."""
         # NOTE: Python 2.6 does not understand the `assertRaises` context mgr
         self.assertRaises(
             routes.StartTokenNotFoundError,
