@@ -80,13 +80,16 @@ class RouteFormatter(string.Formatter):
 
 
 def do_backup(route_file, suffix='.backup', copy_file=shutil.copy2):
-    # this is probably redundant...
-    _dir = os.path.dirname(route_file)
-    original = os.path.basename(route_file)
-    backup = os.path.join(_dir, original + suffix)
-    #
-    log.info(_('backing up file %r -> %r'), original, backup)
-    copy_file(original, backup)
+    if not os.path.exists(route_file) or not os.path.isfile(route_file):
+        log.info(_('no backup needed'))
+    else:
+        # this is probably redundant...
+        _dir = os.path.dirname(route_file)
+        original = os.path.basename(route_file)
+        backup = os.path.join(_dir, original + suffix)
+        #
+        log.info(_('backing up file %r -> %r'), original, backup)
+        copy_file(original, backup)
 
 
 def rewrite_routes(
