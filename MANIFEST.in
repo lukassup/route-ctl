@@ -1,5 +1,5 @@
 
-include CHANGES.rst COPYING README.rst
+include LICENSE README.rst
 include docs/Makefile
 recursive-include docs *.png *.py *.rst
 recursive-include tests *.py
