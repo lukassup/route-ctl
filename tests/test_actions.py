@@ -52,6 +52,16 @@ class TestBackup(unittest.TestCase):
         self.assertFalse(os.path.isfile(_path))
         self.assertFalse(os.path.isfile(_backup))
 
+    def test_backup_dir(self):
+        """Directories should not be backed up."""
+        _path = self.dir
+        _backup = _path + self.suffix
+        self.assertTrue(os.path.isdir(_path))
+        self.assertFalse(os.path.isdir(_backup))
+        actions.do_backup(_path, suffix=self.suffix)
+        self.assertTrue(os.path.isdir(_path))
+        self.assertFalse(os.path.isdir(_backup))
+
     def test_backup_overwrite(self):
         """Last backup should be overwritten."""
         new_content = 'SOME NEW CONTENT'
