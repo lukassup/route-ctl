@@ -1,0 +1,5 @@
+FROM python:3.6
+ADD ./ /code/
+RUN pip3 install /code/
+CMD python3 /code/setup.py test
+
