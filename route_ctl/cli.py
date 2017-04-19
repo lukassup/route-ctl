@@ -85,7 +85,7 @@ rw_config_args.add_argument(
     '--route-file',
     metavar='FILE',
     dest='route_file',
-    type=argparse.FileType('r+'),
+    # type=argparse.FileType('r+'),
     default=os.environ.get('ROUTE_FILE'),
     help=_('route file (default: ROUTE_FILE envvar)'),
 )
@@ -251,7 +251,7 @@ batch_replace_action = subparsers.add_parser(
     help=_('batch replace items from a JSON file'),
     parents=[
         common_args,
-        ro_config_args,
+        rw_config_args,
     ]
 )
 batch_replace_action.set_defaults(action=batch_replace_cli_action)

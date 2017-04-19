@@ -15,11 +15,16 @@ import logging
 import shutil
 import os
 import string
+import sys
 
 from collections import defaultdict
 
 from . import routes
 
+
+# NOTE: backward compatibility
+if sys.version_info >= (3, 0):
+    unicode = basestring = str
 
 # logging
 log = logging.getLogger(__name__)
@@ -68,8 +73,10 @@ class RouteFormatter(string.Formatter):
             value, field = super(self.__class__, self).get_field(field_name, *args, **kwargs)
         except (KeyError, AttributeError):
             return None, field_name
-        if (isinstance(value, str) and not value.startswith(self.var)):
-            value = repr(value)
+        # NOTE: backward compatibility -- this should reliably quotes both
+        # Unicode and non-Unicode strings in Python 2 and 3.
+        if (isinstance(value, basestring) and not value.startswith(self.var)):
+            value = repr(str(value))
         return value, field
 
     def format_field(self, value, spec):
@@ -187,12 +194,8 @@ def batch_replace_items(
         **kwargs):
     log.info(_('loading routes from JSON'))
     src_routes = list(json.load(source_file)['routes'])
-    route_file_name = route_file.name
-    log.info(_('closing file %r'), route_file_name)
-    # close the file to truncate and reopen for writing later
-    route_file.close()
     log.info(_('batch replacing routes'))
-    rewrite_routes(src_routes, route_file_name)
+    rewrite_routes(src_routes, route_file)
     result = {'routes': src_routes}
     return json.dumps(result, indent=2)
 
@@ -219,7 +222,8 @@ def create_or_update_item(
     if options:
         route['options'] = options
     log.info(_('parsing routes from route file'))
-    current_routes = list(routes.parse_routes(route_file))
+    with open(route_file) as fr:
+        current_routes = list(routes.parse_routes(fr))
     log.info(_('looking up if the route already exists'))
     existing_routes = list(routes.find_existing(current_routes, route))
     if not existing_routes:
@@ -234,11 +238,7 @@ def create_or_update_item(
         old_name = existing_route['name']
         log.info(_('updating existing route %s=%r'), 'name', old_name)
         existing_route.update(route)
-    route_file_name = route_file.name
-    log.info(_('closing file %r'), route_file_name)
-    # close the file to truncate and reopen for writing later
-    route_file.close()
-    rewrite_routes(current_routes, route_file_name)
+    rewrite_routes(current_routes, route_file)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
@@ -264,7 +264,8 @@ def update_item(
     if options:
         route['options'] = options
     log.info(_('parsing routes from route file'))
-    current_routes = list(routes.parse_routes(route_file))
+    with open(route_file) as fr:
+        current_routes = list(routes.parse_routes(fr))
     log.info(_('looking up if the route already exists'))
     existing_routes = list(routes.find_existing(current_routes, route))
     if not existing_routes:
@@ -278,11 +279,7 @@ def update_item(
     old_name = existing_route['name']
     log.info(_('updating existing route %s=%r'), 'name', old_name)
     existing_route.update(route)
-    route_file_name = route_file.name
-    log.info(_('closing file %r'), route_file_name)
-    # close the file to truncate and reopen for writing later
-    route_file.close()
-    rewrite_routes(current_routes, route_file_name)
+    rewrite_routes(current_routes, route_file)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
@@ -294,17 +291,13 @@ def delete_items(
         exact_match,
         *args,
         **kwargs):
-    current_routes = routes.parse_routes(route_file)
-    log.info(_('parsing routes from route file'))
-    log.info(_('filtering out items matching filter: %s=%r'), key, value)
-    new_routes = list(routes.delete_routes(current_routes, value, key,
-                                           ignore_case, exact_match))
-    route_file_name = route_file.name
-    log.info(_('closing file %r'), route_file_name)
-    # close the file to truncate and reopen for writing later
-    route_file.close()
-    # Rewrite the route file from filtered entries
-    rewrite_routes(new_routes, route_file_name)
+    with open(route_file) as fr:
+        current_routes = routes.parse_routes(route_file)
+        log.info(_('parsing routes from route file'))
+        log.info(_('filtering out items matching filter: %s=%r'), key, value)
+        new_routes = list(routes.delete_routes(current_routes, value, key,
+                                               ignore_case, exact_match))
+    rewrite_routes(new_routes, route_file)
     result = {'routes': new_routes}
     return json.dumps(result, indent=2)
 
