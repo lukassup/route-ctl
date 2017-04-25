@@ -24,12 +24,12 @@ For instructions on installing python and pip see "The Hitchhiker's Guide to
 Python" `Installation Guides
 <http://docs.python-guide.org/en/latest/starting/installation/>`_.
 
-Or installing for development:
+Alternatively use ``easy_install``:
 
 .. code-block:: bash
 
     $ git clone https://github.com/lukassup/route-cli.git
-    $ pip install -e ./route-cli
+    $ easy_install ./route-cli
 
 .. _usage:
 
@@ -59,3 +59,36 @@ Usage
     optional arguments:
     -h, --help            show this help message and exit
 
+.. _development:
+
+Development
+-----------
+
+Install the ``route-ctl`` package in editable mode using ``pip``:
+
+.. code-block:: bash
+
+    $ git clone https://github.com/lukassup/route-cli.git
+    $ pip install -e ./route-cli
+
+.. _testing:
+
+Testing
+-------
+
+Run the tests:
+
+.. code-block:: bash
+
+    $ git clone https://github.com/lukassup/route-cli.git
+    $ cd route-cli
+    $ python2 setup.py test
+    $ python3 setup.py test
+
+Or test all supported versions in Docker containers:
+
+.. code-block:: bash
+
+    $ git clone https://github.com/lukassup/route-cli.git
+    $ make docker-build
+    $ make docker-test
