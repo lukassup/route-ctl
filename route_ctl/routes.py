@@ -124,9 +124,9 @@ def parse_route(lines,
                 block_head=ROUTE_BLOCK_HEAD,
                 block_item=ROUTE_BLOCK_ITEM,
                 block_close=CLOSE_BRACE):
-    """."""
+    """Find a route block in an iterable of strings (e.g. lines in file)."""
     route = {}
-    # Code block start parser
+    # NOTE: find the begining of a code block
     for line in lines:
         head_match = block_head.match(line)
         if head_match:
@@ -134,9 +134,7 @@ def parse_route(lines,
             break
     else:
         raise StartTokenNotFoundError('No match for code block start.')
-    # Code block body parser. This is can be pictured as a:
-    # while not block_close.match(line):
-    #     extract_values(line)
+    # NOTE: code block body parser
     for line in lines:
         if block_close.match(line):
             break
@@ -181,7 +179,6 @@ def find_routes(routes,
     else:
         flags = re.IGNORECASE if ignore_case else 0
         regexp = re.compile(value, flags=flags)
-
         if exact_match:
             def matcher(item, key=key, regexp=regexp):
                 return regexp.match(item.get(key))
@@ -218,7 +215,7 @@ def delete_routes(routes,
 def find_existing(routes, route):
     """Check if a route is already present.
 
-    A route is already present if:
+    a route is already present if:
     - a route with the same name exists
     - a route with the same network/netmask exists
     """
