@@ -23,9 +23,6 @@ test3:
 
 test23: test2 test3
 
-install:
-	/usr/bin/env python setup.py install
-
 docker-build26:
 	docker build -t $(NAME)/py26 -f Dockerfile.py26 .
 

@@ -1,5 +1,8 @@
-FROM python:2.6
+FROM centos:6
+RUN yum update -y && yum install -y python-argparse python-setuptools && yum clean all
+RUN easy_install pip
+RUN pip install -U setuptools
 ADD ./ /code/
-RUN pip install /code
-CMD python /code/setup.py test
+WORKDIR /code/
+CMD python setup.py test
 
