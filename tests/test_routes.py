@@ -217,14 +217,95 @@ class TestParseRoutes(unittest.TestCase):
 
 class TestFindRoutes(unittest.TestCase):
     """Test `find_routes()` function."""
-    pass
-    # TODO
+
+    def test_find_route_by_name_exact(self):
+        """Should find a route with an exact name match."""
+        expected_result = {
+            'name': 'default',
+            'ensure': 'present',
+            'gateway': '10.0.2.2',
+            'interface': '$appout',
+            'netmask': '0.0.0.0',
+            'network': 'default'
+        }
+        found_routes = list(routes.find_routes(VALID_ROUTES, 'default'))
+        self.assertEqual(len(found_routes), 1)
+        self.assertEqual(found_routes[0], expected_result)
+
+    def test_find_route_by_name_nocase(self):
+        """Should find a route with an exact case-insensitive name match."""
+        expected_result = {
+            'name': 'default',
+            'ensure': 'present',
+            'gateway': '10.0.2.2',
+            'interface': '$appout',
+            'netmask': '0.0.0.0',
+            'network': 'default'
+        }
+        found_routes = list(routes.find_routes(VALID_ROUTES, 'DEFAULT', ignore_case=True))
+        self.assertEqual(len(found_routes), 1)
+        self.assertEqual(found_routes[0], expected_result)
+
+    def test_find_route_no_match(self):
+        """Should not find any routes."""
+        expected_result = {
+            'name': 'default',
+            'ensure': 'present',
+            'gateway': '10.0.2.2',
+            'interface': '$appout',
+            'netmask': '0.0.0.0',
+            'network': 'default'
+        }
+        found_routes = list(routes.find_routes(VALID_ROUTES, '1.2.3.4'))
+        self.assertEqual(len(found_routes), 0)
 
 
 class TestFindExisting(unittest.TestCase):
     """Test `find_existing()` function."""
-    pass
-    # TODO
+
+    def test_find_existing_by_name(self):
+        """Should find an existing route by with the same name."""
+        expected_route = {
+            'name': 'default',  # this should match
+            'ensure': 'absent',
+            'gateway': '192.168.0.1',
+            'interface': 'wlan0',
+            'netmask': '255.0.0.0',
+            'network': '1.0.0.0'
+        }
+        existing_routes = list(routes.find_existing(
+            VALID_ROUTES, expected_route))
+        self.assertEqual(len(existing_routes), 1)
+        self.assertTrue(existing_routes[0] in VALID_ROUTES)
+
+    def test_find_existing_by_net(self):
+        """Should find and existing route with the same network/netmask pair."""
+        expected_route = {
+            'name': 'my-network',
+            'ensure': 'absent',
+            'gateway': '192.168.0.1',
+            'interface': 'wlan0',
+            'netmask': '0.0.0.0',  # this...
+            'network': 'default',  # ...and this should match
+        }
+        existing_routes = list(routes.find_existing(
+            VALID_ROUTES, expected_route))
+        self.assertEqual(len(existing_routes), 1)
+        self.assertTrue(existing_routes[0] in VALID_ROUTES)
+
+    def test_find_existing_absent(self):
+        """Should not find any existing routes."""
+        not_expected_route = {
+            'name': 'random-network',
+            'ensure': 'present',
+            'gateway': '192.168.0.1',
+            'interface': 'eth0',
+            'netmask': '255.255.128.0',
+            'network': '22.33.44.0',
+        }
+        existing_routes = list(routes.find_existing(
+            VALID_ROUTES, not_expected_route))
+        self.assertEqual(len(existing_routes), 0)
 
 
 class TestDeleteRoutes(unittest.TestCase):
