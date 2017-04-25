@@ -20,10 +20,11 @@ import sys
 from collections import defaultdict
 
 from . import routes
+from . import _pyversion as v
 
 
 # NOTE: backward compatibility
-if sys.version_info >= (3, 0):
+if v.PY3:
     unicode = basestring = str
 
 # logging
@@ -118,8 +119,8 @@ def rewrite_routes(
 def list_items(route_file, *args, **kwargs):
     current_routes = routes.parse_routes(route_file)
     log.info(_('parsing routes from route file'))
-    log.info(_('listing all items'))
     result = {'routes': list(current_routes)}
+    log.info(_('listing all items'))
     return json.dumps(result, indent=2)
 
 
@@ -211,6 +212,11 @@ def create_or_update_item(
         options=None,
         *args,
         **kwargs):
+    log.debug(_('called `create_or_update_item` with arguments: route_file=%r, '
+                'name=%r, ensure=%r, gateway=%r, interface=%r, network=%r, '
+                'netmask=%r, options=%r, %r, %r'),
+            route_file, name, ensure, gateway, interface, network, netmask,
+            options, args, kwargs)
     route = {
         'name': name,
         'ensure': ensure,
@@ -253,6 +259,11 @@ def update_item(
         options=None,
         *args,
         **kwargs):
+    log.debug(_('called `update_item` with arguments: route_file=%r, '
+                'name=%r, ensure=%r, gateway=%r, interface=%r, network=%r, '
+                'netmask=%r, options=%r, %r, %r'),
+            route_file, name, ensure, gateway, interface, network, netmask,
+            options, args, kwargs)
     route = {
         'name': name,
         'ensure': ensure,
@@ -291,8 +302,11 @@ def delete_items(
         exact_match,
         *args,
         **kwargs):
+    log.debug(_('called `delete_items` with arguments: route_file=%r, '
+                'value=%r, key=%r, ignore_case=%r, exact_match=%r, %r, %r'),
+             route_file, value, key, ignore_case, exact_match, args, kwargs)
     with open(route_file) as fr:
-        current_routes = routes.parse_routes(route_file)
+        current_routes = routes.parse_routes(fr)
         log.info(_('parsing routes from route file'))
         log.info(_('filtering out items matching filter: %s=%r'), key, value)
         new_routes = list(routes.delete_routes(current_routes, value, key,

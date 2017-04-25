@@ -26,7 +26,6 @@ log = logging.getLogger(__name__)
 
 
 # l18n
-
 trans = gettext.translation(__name__, 'locale', fallback=True)
 _ = trans.gettext
 
@@ -305,6 +304,7 @@ def main():
     log_level = max(logging.DEBUG, min(logging.CRITICAL, sum(args.verbosity)))
     debug_on = log_level <= logging.DEBUG
     logging.basicConfig(level=log_level)
+    log.debug(_('Starting with cli arguments: %r'), vars(args))
     try:
         args.action(**vars(args))
     except Exception as e:

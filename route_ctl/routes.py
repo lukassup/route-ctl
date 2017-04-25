@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""TODO: add module description."""
+"""Core route parsing and manipulation functionality."""
 
 from __future__ import (
     absolute_import,   # Python 2.5+
@@ -10,6 +10,15 @@ from __future__ import (
 )
 
 import re
+
+from . import _pyversion as v
+
+
+if v.PY2:
+    from itertools import ifilter, imap, izip
+    filter, _filter = ifilter, filter
+    map, _map = imap, map
+    zip, _zip = izip, zip
 
 
 R = re.compile
@@ -196,7 +205,6 @@ def delete_routes(routes,
     else:
         flags = re.IGNORECASE if ignore_case else 0
         regexp = re.compile(value, flags=flags)
-
         if exact_match:
             def no_matcher(item, key=key, regexp=regexp):
                 return not regexp.match(item.get(key))

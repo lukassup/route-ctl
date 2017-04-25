@@ -11,7 +11,6 @@ from __future__ import (
 
 import logging
 
-
 try:  # Python 2.7+
     from logging import NullHandler
 except ImportError:
