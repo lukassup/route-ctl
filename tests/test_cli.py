@@ -7,11 +7,11 @@ from __future__ import (
     with_statement,    # Python 2.5+
 )
 
-import unittest
-import shlex
 import contextlib
-import sys
 import os
+import shlex
+import sys
+import unittest
 
 try:
     from io import StringIO
@@ -78,6 +78,8 @@ class TestCLI(unittest.TestCase):
 
     def test_displays_help_with_subcommand(self):
         """CLI should display help with the `help` subcommand."""
+        if v.PY26:
+            return
         command = 'help'
         args = cli.parser.parse_args(shlex.split(command))
         with capture_output() as (stdout, stderr):
@@ -100,6 +102,8 @@ class TestCLI(unittest.TestCase):
 
     def test_displays_help_with_option(self):
         """CLI should display help with with `-h` option for all subcommands."""
+        if v.PY26:
+            return
         commands = [
             '-h',
             'list -h',
