@@ -86,54 +86,37 @@ VALID_ROUTES = [
     }
 ]
 
-class TestRouteParserValid(unittest.TestCase):
-    """Perform route parsing tests for valid route file."""
 
-    def setUp(self):
-        self.route_file = StringIO(VALID_ROUTE_FILE)
+class TestRouteParser(unittest.TestCase):
+    """Perform route parsing tests."""
 
     def test_parse_first_route(self):
         """First parsed route should be correct."""
-        self.assertEqual(
-            routes.parse_route(self.route_file),
-            VALID_ROUTES[0]
-        )
+        with StringIO(VALID_ROUTE_FILE) as route_file:
+            self.assertEqual(routes.parse_route(route_file), VALID_ROUTES[0])
 
     def test_parse_all_routes(self):
         """All of the parsed routes should be correct."""
-        self.assertEqual(
-            list(routes.parse_routes(self.route_file)),
-            VALID_ROUTES
-        )
-
-
-class TestRouteParserMissingCloseBrace(unittest.TestCase):
-    """Perform route parsing tests for missing close brace route in file."""
-
-    def setUp(self):
-        self.route_file = StringIO(MISSING_CLOSE_BRACE_FILE)
+        with StringIO(VALID_ROUTE_FILE) as route_file:
+            self.assertEqual(
+                list(routes.parse_routes(route_file)), VALID_ROUTES)
 
     def test_missing_close_brace(self):
         """Correct exception should be raised when missing a close brace."""
-        # NOTE: Python 2.6 does not understand the `assertRaises` context mgr
-        self.assertRaises(
-            routes.EndTokenNotFoundError,
-            routes.parse_route,  # test func
-            self.route_file      # arg
-        )
-
-
-class TestRouteParserMissingOpenBrace(unittest.TestCase):
-    """Perform route parsing tests for missing open brace in file."""
-
-    def setUp(self):
-        self.route_file = StringIO(MISSING_OPEN_BRACE_FILE)
+        with StringIO(MISSING_CLOSE_BRACE_FILE) as route_file:
+            # NOTE: there is no context manager for ``assertRaises``` in PY26.
+            self.assertRaises(
+                routes.EndTokenNotFoundError,
+                routes.parse_route,  # test func
+                route_file      # arg
+            )
 
     def test_missing_open_brace(self):
         """Correct exception should be raised when missing a close brace."""
-        # NOTE: Python 2.6 does not understand the `assertRaises` context mgr
-        self.assertRaises(
-            routes.StartTokenNotFoundError,
-            routes.parse_route,  # test func
-            self.route_file      # arg
-        )
+        with StringIO(MISSING_OPEN_BRACE_FILE) as route_file:
+            # NOTE: there is no context manager for ``assertRaises``` in PY26.
+            self.assertRaises(
+                routes.StartTokenNotFoundError,
+                routes.parse_route,  # test func
+                route_file      # arg
+            )

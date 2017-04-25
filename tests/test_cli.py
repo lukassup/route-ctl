@@ -12,12 +12,18 @@ import shlex
 import contextlib
 import sys
 import os
+
 try:
     from io import StringIO
 except ImportError:
     from cStringIO import StringIO  # Python 2
 
 from route_ctl import cli
+from route_ctl import _pyversion as v
+
+
+if v.PY3:
+    basestring = unicode = str
 
 
 @contextlib.contextmanager
@@ -44,9 +50,9 @@ def capture_output():
             sys.stderr = _stderr
 
 
-class TestCLIParser(unittest.TestCase):
-    """Perform route-ctl CLI tests."""
-    
+class TestCLI(unittest.TestCase):
+    """Perform CLI tests."""
+
     def test_displays_usage(self):
         """CLI should display usage without any arguments."""
         command = ''
@@ -62,8 +68,8 @@ class TestCLIParser(unittest.TestCase):
                 cli.parser.parse_args(shlex.split(command))
             except SystemExit as e:
                 self.assertEqual(e.code, 2)
-            # XXX: this always fails on Python 2 because argparse prints help in
-            # str not unicode.
+            # XXX: this always fails on Python 2 because argparse prints
+            # help in str not unicode.
             # self.assertRegexpMatches(
             #     stderr.getvalue(),
             #     r'^usage:',
