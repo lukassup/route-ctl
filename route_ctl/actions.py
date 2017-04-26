@@ -19,7 +19,7 @@ import sys
 
 from collections import defaultdict
 
-from . import routes
+from . import core
 from . import _pyversion as v
 
 
@@ -117,7 +117,7 @@ def rewrite_routes(
 
 
 def list_items(route_file, *args, **kwargs):
-    current_routes = routes.parse_routes(route_file)
+    current_routes = core.parse_routes(route_file)
     log.info(_('parsing routes from route file'))
     result = {'routes': list(current_routes)}
     log.info(_('listing all items'))
@@ -132,9 +132,9 @@ def find_items(
         exact_match,
         *args,
         **kwargs):
-    current_routes = routes.parse_routes(route_file)
+    current_routes = core.parse_routes(route_file)
     log.info(_('creating a route filter: %s=%r'), key, value)
-    found_routes = routes.find_routes(current_routes, value, key,
+    found_routes = core.find_routes(current_routes, value, key,
                                       ignore_case, exact_match)
     log.info(_('parsing routes from route file'))
     result = {'routes': list(found_routes)}
@@ -166,9 +166,9 @@ def validate_item(
     if options:
         route['options'] = options
     log.info(_('parsing routes from route file'))
-    current_routes = routes.parse_routes(route_file)
+    current_routes = core.parse_routes(route_file)
     log.info(_('validating item %r'), name)
-    validated = routes.validate_route(current_routes, route)
+    validated = core.validate_route(current_routes, route)
     result = {'input': route, 'output': validated}
     return json.dumps(result, indent=2)
 
@@ -181,9 +181,9 @@ def batch_validate_items(
     log.info(_('loading routes from JSON'))
     src_routes = json.load(source_file)['routes']
     log.info(_('parsing routes from route file'))
-    current_routes = routes.parse_routes(route_file)
+    current_routes = core.parse_routes(route_file)
     log.info(_('batch validating routes'))
-    validated = routes.validate_routes(current_routes, src_routes)
+    validated = core.validate_routes(current_routes, src_routes)
     result = {'routes': list(validated)}
     return json.dumps(result, indent=2)
 
@@ -229,14 +229,14 @@ def create_or_update_item(
         route['options'] = options
     log.info(_('parsing routes from route file'))
     with open(route_file) as fr:
-        current_routes = list(routes.parse_routes(fr))
+        current_routes = list(core.parse_routes(fr))
     log.info(_('looking up if the route already exists'))
-    existing_routes = list(routes.find_existing(current_routes, route))
+    existing_routes = list(core.find_existing(current_routes, route))
     if not existing_routes:
         log.info(_('creating a new route %s=%r'), 'name', name)
         current_routes.append(route)
     elif len(existing_routes) > 1:
-        raise routes.MultipleRoutesFoundError(_(
+        raise core.MultipleRoutesFoundError(_(
                 'Unable to update. '
                 'More than one route with such name exists.'))
     else:
@@ -276,14 +276,14 @@ def update_item(
         route['options'] = options
     log.info(_('parsing routes from route file'))
     with open(route_file) as fr:
-        current_routes = list(routes.parse_routes(fr))
+        current_routes = list(core.parse_routes(fr))
     log.info(_('looking up if the route already exists'))
-    existing_routes = list(routes.find_existing(current_routes, route))
+    existing_routes = list(core.find_existing(current_routes, route))
     if not existing_routes:
-        raise routes.RouteNotFoundError(_(
+        raise core.RouteNotFoundError(_(
                 'Unable to update. No route matching criteria found.'))
     if len(existing_routes) > 1:
-        raise routes.MultipleRoutesFoundError(_(
+        raise core.MultipleRoutesFoundError(_(
                 'Unable to update. '
                 'More than one route matching criteria exist.'))
     existing_route = existing_routes[0]
@@ -306,10 +306,10 @@ def delete_items(
                 'value=%r, key=%r, ignore_case=%r, exact_match=%r, %r, %r'),
              route_file, value, key, ignore_case, exact_match, args, kwargs)
     with open(route_file) as fr:
-        current_routes = routes.parse_routes(fr)
+        current_routes = core.parse_routes(fr)
         log.info(_('parsing routes from route file'))
         log.info(_('filtering out items matching filter: %s=%r'), key, value)
-        new_routes = list(routes.delete_routes(current_routes, value, key,
+        new_routes = list(core.delete_routes(current_routes, value, key,
                                                ignore_case, exact_match))
     rewrite_routes(new_routes, route_file)
     result = {'routes': new_routes}

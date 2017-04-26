@@ -14,7 +14,7 @@ try:
 except ImportError:
     from cStringIO import StringIO  # Python 2
 
-from route_ctl import routes
+from route_ctl import core
 
 
 VALID_ROUTE_FILE = '''\
@@ -130,7 +130,7 @@ class TestFindHeader(unittest.TestCase):
         """Should stop right after the header is found."""
         with StringIO(VALID_ROUTE_FILE) as route_file:
             try:
-                routes.find_header(route_file)
+                core.find_header(route_file)
             except Exception as e:
                 self.fail(e)
             line = route_file.readline().rstrip()
@@ -143,8 +143,8 @@ class TestFindHeader(unittest.TestCase):
         with StringIO(MISSING_HEADER_FILE) as route_file:
             # NOTE: there is no context manager for ``assertRaises``` in PY26.
             self.assertRaises(
-                routes.StartTokenNotFoundError,
-                routes.find_header,  # test func
+                core.StartTokenNotFoundError,
+                core.find_header,  # test func
                 route_file      # arg
             )
 
@@ -156,7 +156,7 @@ class TestFindClosingBrace(unittest.TestCase):
         """Should raise no exceptions if a closing brace is found."""
         with StringIO(VALID_ROUTE_FILE) as route_file:
             try:
-                routes.find_closing_brace(route_file)
+                core.find_closing_brace(route_file)
             except Exception as e:
                 self.fail(e)
 
@@ -165,8 +165,8 @@ class TestFindClosingBrace(unittest.TestCase):
         with StringIO(MISSING_CLOSE_BRACE_FILE) as route_file:
             # NOTE: there is no context manager for ``assertRaises``` in PY26.
             self.assertRaises(
-                routes.EndTokenNotFoundError,
-                routes.parse_route,  # test func
+                core.EndTokenNotFoundError,
+                core.parse_route,  # test func
                 route_file      # arg
             )
 
@@ -177,20 +177,20 @@ class TestParseRoute(unittest.TestCase):
     def test_one_route_present(self):
         """Should correctly return the parsed route."""
         with StringIO(SINGLE_VALID_ROUTE_FILE) as route_file:
-            self.assertEqual(routes.parse_route(route_file), VALID_ROUTES[0])
+            self.assertEqual(core.parse_route(route_file), VALID_ROUTES[0])
 
     def test_many_routes_present(self):
         """Should correctly return the first parsed route."""
         with StringIO(VALID_ROUTE_FILE) as route_file:
-            self.assertEqual(routes.parse_route(route_file), VALID_ROUTES[0])
+            self.assertEqual(core.parse_route(route_file), VALID_ROUTES[0])
 
     def test_missing_close_brace(self):
         """Should raise the correct exception when missing a close brace."""
         with StringIO(MISSING_CLOSE_BRACE_FILE) as route_file:
             # NOTE: there is no context manager for ``assertRaises``` in PY26.
             self.assertRaises(
-                routes.EndTokenNotFoundError,
-                routes.parse_route,  # test func
+                core.EndTokenNotFoundError,
+                core.parse_route,  # test func
                 route_file      # arg
             )
 
@@ -199,8 +199,8 @@ class TestParseRoute(unittest.TestCase):
         with StringIO(MISSING_OPEN_BRACE_FILE) as route_file:
             # NOTE: there is no context manager for ``assertRaises``` in PY26.
             self.assertRaises(
-                routes.StartTokenNotFoundError,
-                routes.parse_route,  # test func
+                core.StartTokenNotFoundError,
+                core.parse_route,  # test func
                 route_file      # arg
             )
 
@@ -212,7 +212,7 @@ class TestParseRoutes(unittest.TestCase):
         """Should parse all routes correctly."""
         with StringIO(VALID_ROUTE_FILE) as route_file:
             self.assertEqual(
-                list(routes.parse_routes(route_file)), VALID_ROUTES)
+                list(core.parse_routes(route_file)), VALID_ROUTES)
 
 
 class TestFindRoutes(unittest.TestCase):
@@ -228,7 +228,7 @@ class TestFindRoutes(unittest.TestCase):
             'netmask': '0.0.0.0',
             'network': 'default'
         }
-        found_routes = list(routes.find_routes(VALID_ROUTES, 'default'))
+        found_routes = list(core.find_routes(VALID_ROUTES, 'default'))
         self.assertEqual(len(found_routes), 1)
         self.assertEqual(found_routes[0], expected_result)
 
@@ -242,7 +242,7 @@ class TestFindRoutes(unittest.TestCase):
             'netmask': '0.0.0.0',
             'network': 'default'
         }
-        found_routes = list(routes.find_routes(VALID_ROUTES, 'DEFAULT', ignore_case=True))
+        found_routes = list(core.find_routes(VALID_ROUTES, 'DEFAULT', ignore_case=True))
         self.assertEqual(len(found_routes), 1)
         self.assertEqual(found_routes[0], expected_result)
 
@@ -256,7 +256,7 @@ class TestFindRoutes(unittest.TestCase):
             'netmask': '0.0.0.0',
             'network': 'default'
         }
-        found_routes = list(routes.find_routes(VALID_ROUTES, '1.2.3.4'))
+        found_routes = list(core.find_routes(VALID_ROUTES, '1.2.3.4'))
         self.assertEqual(len(found_routes), 0)
 
 
@@ -273,7 +273,7 @@ class TestFindExisting(unittest.TestCase):
             'netmask': '255.0.0.0',
             'network': '1.0.0.0'
         }
-        existing_routes = list(routes.find_existing(
+        existing_routes = list(core.find_existing(
             VALID_ROUTES, expected_route))
         self.assertEqual(len(existing_routes), 1)
         self.assertTrue(existing_routes[0] in VALID_ROUTES)
@@ -289,7 +289,7 @@ class TestFindExisting(unittest.TestCase):
             'netmask': '0.0.0.0',  # this...
             'network': 'default',  # ...and this should match
         }
-        existing_routes = list(routes.find_existing(
+        existing_routes = list(core.find_existing(
             VALID_ROUTES, expected_route))
         self.assertEqual(len(existing_routes), 1)
         self.assertTrue(existing_routes[0] in VALID_ROUTES)
@@ -305,7 +305,7 @@ class TestFindExisting(unittest.TestCase):
             'netmask': '255.255.128.0',
             'network': '22.33.44.0',
         }
-        existing_routes = list(routes.find_existing(
+        existing_routes = list(core.find_existing(
             VALID_ROUTES, not_expected_route))
         self.assertEqual(len(existing_routes), 0)
 
@@ -326,4 +326,3 @@ class TestValidateRoutes(unittest.TestCase):
     """Test `validate_routes()` function."""
     pass
     # TODO
-
