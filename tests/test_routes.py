@@ -277,6 +277,7 @@ class TestFindExisting(unittest.TestCase):
             VALID_ROUTES, expected_route))
         self.assertEqual(len(existing_routes), 1)
         self.assertTrue(existing_routes[0] in VALID_ROUTES)
+        self.assertTrue(existing_routes[0] == VALID_ROUTES[1])
 
     def test_find_existing_by_net(self):
         """Should find and existing route with the same network/netmask pair."""
@@ -292,6 +293,7 @@ class TestFindExisting(unittest.TestCase):
             VALID_ROUTES, expected_route))
         self.assertEqual(len(existing_routes), 1)
         self.assertTrue(existing_routes[0] in VALID_ROUTES)
+        self.assertTrue(existing_routes[0] == VALID_ROUTES[1])
 
     def test_find_existing_absent(self):
         """Should not find any existing routes."""
