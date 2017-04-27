@@ -246,6 +246,12 @@ class TestFindRoutes(unittest.TestCase):
         self.assertEqual(len(found_routes), 1)
         self.assertEqual(found_routes[0], expected_result)
 
+    def test_find_route_regex(self):
+        """Should find all routes with a regexp match."""
+        found_routes = list(core.find_routes(VALID_ROUTES, '.*', exact_match=False))
+        self.assertEqual(len(found_routes), len(VALID_ROUTES))
+        self.assertEqual(found_routes, VALID_ROUTES)
+
     def test_find_route_no_match(self):
         """Should not find any routes."""
         expected_result = {
@@ -276,8 +282,8 @@ class TestFindExisting(unittest.TestCase):
         existing_routes = list(core.find_existing(
             VALID_ROUTES, expected_route))
         self.assertEqual(len(existing_routes), 1)
-        self.assertTrue(existing_routes[0] in VALID_ROUTES)
-        self.assertTrue(existing_routes[0] == VALID_ROUTES[1])
+        self.assertIn(existing_routes[0], VALID_ROUTES)
+        self.assertEqual(existing_routes[0], VALID_ROUTES[1])
 
     def test_find_existing_by_net(self):
         """Should find and existing route with the same network/netmask pair."""
@@ -289,11 +295,10 @@ class TestFindExisting(unittest.TestCase):
             'netmask': '0.0.0.0',  # this...
             'network': 'default',  # ...and this should match
         }
-        existing_routes = list(core.find_existing(
-            VALID_ROUTES, expected_route))
+        existing_routes = list(core.find_existing(VALID_ROUTES, expected_route))
         self.assertEqual(len(existing_routes), 1)
-        self.assertTrue(existing_routes[0] in VALID_ROUTES)
-        self.assertTrue(existing_routes[0] == VALID_ROUTES[1])
+        self.assertIn(existing_routes[0], VALID_ROUTES)
+        self.assertEqual(existing_routes[0], VALID_ROUTES[1])
 
     def test_find_existing_absent(self):
         """Should not find any existing routes."""
@@ -312,8 +317,24 @@ class TestFindExisting(unittest.TestCase):
 
 class TestDeleteRoutes(unittest.TestCase):
     """Test `delete_routes()` function."""
-    pass
-    # TODO
+
+    def test_delete_one_route_exact(self):
+        """Should delete one route by an exact name match."""
+        new_routes = list(core.delete_routes(VALID_ROUTES, 'default'))
+        self.assertEqual(len(new_routes), 1)
+        self.assertIn(new_routes[0], VALID_ROUTES)
+        self.assertEqual(new_routes[0], VALID_ROUTES[0])
+
+    def test_delete_all_by_regex(self):
+        """Should delete all routes by a regexp match."""
+        new_routes = list(core.delete_routes(VALID_ROUTES, '.*', exact_match=False))
+        self.assertEqual(len(new_routes), 0)
+
+    def test_delete_none(self):
+        """Should not delete anything (no matches)."""
+        new_routes = list(core.delete_routes(VALID_ROUTES, 'non-existing-route'))
+        self.assertEqual(len(new_routes), 2)
+        self.assertEqual(new_routes, VALID_ROUTES)
 
 
 class TestValidateRoute(unittest.TestCase):
