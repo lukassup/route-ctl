@@ -330,6 +330,12 @@ class TestDeleteRoutes(unittest.TestCase):
         new_routes = list(core.delete_routes(VALID_ROUTES, '.*', exact_match=False))
         self.assertEqual(len(new_routes), 0)
 
+    def test_delete_one_nocase(self):
+        """Should delete one route with a case-insensitive match."""
+        new_routes = list(core.delete_routes(VALID_ROUTES, 'DEFAULT', ignore_case=True))
+        self.assertEqual(len(new_routes), 1)
+        self.assertEqual(new_routes[0], VALID_ROUTES[0])
+
     def test_delete_none(self):
         """Should not delete anything (no matches)."""
         new_routes = list(core.delete_routes(VALID_ROUTES, 'non-existing-route'))
