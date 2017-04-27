@@ -15,11 +15,7 @@ from . import _pyversion as v
 
 
 if v.PY2:
-    from itertools import ifilter, imap, izip
-    filter, _filter = ifilter, filter
-    map, _map = imap, map
-    zip, _zip = izip, zip
-
+    from itertools import ifilter as filter, imap as map, izip as zip
 
 R = re.compile
 

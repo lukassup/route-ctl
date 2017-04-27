@@ -17,8 +17,6 @@ import os
 import string
 import sys
 
-from collections import defaultdict
-
 from . import core
 from . import _pyversion as v
 
