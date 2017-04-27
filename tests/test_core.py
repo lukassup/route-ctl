@@ -282,7 +282,7 @@ class TestFindExisting(unittest.TestCase):
         existing_routes = list(core.find_existing(
             VALID_ROUTES, expected_route))
         self.assertEqual(len(existing_routes), 1)
-        self.assertIn(existing_routes[0], VALID_ROUTES)
+        self.assertTrue(existing_routes[0] in VALID_ROUTES)
         self.assertEqual(existing_routes[0], VALID_ROUTES[1])
 
     def test_find_existing_by_net(self):
@@ -297,7 +297,7 @@ class TestFindExisting(unittest.TestCase):
         }
         existing_routes = list(core.find_existing(VALID_ROUTES, expected_route))
         self.assertEqual(len(existing_routes), 1)
-        self.assertIn(existing_routes[0], VALID_ROUTES)
+        self.assertTrue(existing_routes[0] in VALID_ROUTES)
         self.assertEqual(existing_routes[0], VALID_ROUTES[1])
 
     def test_find_existing_absent(self):
@@ -322,7 +322,7 @@ class TestDeleteRoutes(unittest.TestCase):
         """Should delete one route by an exact name match."""
         new_routes = list(core.delete_routes(VALID_ROUTES, 'default'))
         self.assertEqual(len(new_routes), 1)
-        self.assertIn(new_routes[0], VALID_ROUTES)
+        self.assertTrue(new_routes[0] in VALID_ROUTES)
         self.assertEqual(new_routes[0], VALID_ROUTES[0])
 
     def test_delete_all_by_regex(self):
