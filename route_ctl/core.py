@@ -238,8 +238,8 @@ def validate_route(current_routes, input_route):
 
     found_routes = list(filter(name_matcher, current_routes))
     if not found_routes:
-        raise RouteNotFoundError(
-            'No route with name {0!r}'.format(route_name))
+        # everything should be set to False when a route is not found
+        return validated
     if len(found_routes) > 1:
         raise MultipleRoutesFoundError(
             'More than one route with name {0!r} found'.format(route_name))

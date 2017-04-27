@@ -345,11 +345,66 @@ class TestDeleteRoutes(unittest.TestCase):
 
 class TestValidateRoute(unittest.TestCase):
     """Test `validate_route()` function."""
-    pass
-    # TODO
+
+    def test_route_partially_valid(self):
+        """Should partially validate route."""
+        partially_valid_route = {
+            'name': '172.17.67.0/24',
+            'ensure': 'present',
+            'gateway': '192.168.0.1',  # incorrect
+            'interface': 'wlan0',  # incorrect
+            'netmask': '255.255.255.0',
+            'network': '172.17.67.0',
+            'options': 'table 200',
+        }
+        valid_items = core.validate_route(VALID_ROUTES, partially_valid_route)
+        self.assertTrue(any(valid_items.values()))
+        self.assertEqual(sum(valid_items.values()), 5)
+
+    def test_route_completely_valid(self):
+        """Should validate route completely."""
+        valid_route = {
+            'name': '172.17.67.0/24',
+            'ensure': 'present',
+            'gateway': '10.0.2.2',
+            'interface': 'eth0',
+            'netmask': '255.255.255.0',
+            'network': '172.17.67.0',
+            'options': 'table 200',
+        }
+        valid_items = core.validate_route(VALID_ROUTES, valid_route)
+        self.assertTrue(all(valid_items.values()))
+        self.assertEqual(sum(valid_items.values()), len(valid_items))
+
+    def test_route_invalid(self):
+        """Should invalidate route."""
+        invalid_route = {
+            'name': '192.168.0.0/24',
+            'ensure': 'present',
+            'gateway': '192.168.0.1',
+            'interface': 'eth1',
+            'netmask': '255.255.255.0',
+            'network': '192.168.0.0',
+        }
+        valid_items = core.validate_route(VALID_ROUTES, invalid_route)
+        self.assertTrue(not any(valid_items.values()))
+        self.assertEqual(sum(valid_items.values()), 0)
 
 
 class TestValidateRoutes(unittest.TestCase):
     """Test `validate_routes()` function."""
-    pass
-    # TODO
+
+    def test_valdiate_routes_all_valid(self):
+        """Should validate all routes successfully."""
+        validated = core.validate_routes(VALID_ROUTES, VALID_ROUTES)
+        for v in validated:
+            self.assertTrue(all(v['output'].values()))
+            self.assertEqual(sum(v['output'].values()), len(v['output']))
+
+    def test_valdiate_routes_one_valid(self):
+        """Should valdiate one route successfully."""
+        pass  # TODO
+
+    def test_validate_routes_no_valid(self):
+        """Should invalidate all routes."""
+        pass  # TODO
