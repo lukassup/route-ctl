@@ -1,33 +1,33 @@
 # -*- coding: utf-8 -*-
 
-"""Sample application actions."""
+"""route-ctl application actions."""
 
 from __future__ import (
-    absolute_import,    # 2.5+
-    print_function,     # 2.6+
-    unicode_literals,   # 2.6+
-    with_statement,     # 2.5+
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
 )
 
 import gettext
 import json
 import logging
-import shutil
 import os
+import shutil
 import string
-import sys
 
 from . import core
-from . import _pyversion as v
 
-
-# NOTE: backward compatibility
-if v.PY3:
+try:
+    unicode
+    basestring
+except NameError:
+    # NOTE: PY2 compatibility
     unicode = basestring = str
+
 
 # logging
 log = logging.getLogger(__name__)
-
 
 # l18n
 trans = gettext.translation(__name__, 'locale', fallback=True)
@@ -72,9 +72,9 @@ class RouteFormatter(string.Formatter):
             value, field = super(self.__class__, self).get_field(field_name, *args, **kwargs)
         except (KeyError, AttributeError):
             return None, field_name
-        # NOTE: backward compatibility -- this should reliably quotes both
-        # Unicode and non-Unicode strings in Python 2 and 3.
-        if (isinstance(value, basestring) and not value.startswith(self.var)):
+        # NOTE: PY2 compatibility. This should reliably quote both Unicode and
+        # non-Unicode strings in Python 2 and 3.
+        if isinstance(value, basestring) and not value.startswith(self.var):
             value = repr(str(value))
         return value, field
 
@@ -133,7 +133,7 @@ def find_items(
     current_routes = core.parse_routes(route_file)
     log.info(_('creating a route filter: %s=%r'), key, value)
     found_routes = core.find_routes(current_routes, value, key,
-                                      ignore_case, exact_match)
+                                    ignore_case, exact_match)
     log.info(_('parsing routes from route file'))
     result = {'routes': list(found_routes)}
     return json.dumps(result, indent=2)
@@ -213,8 +213,8 @@ def create_or_update_item(
     log.debug(_('called `create_or_update_item` with arguments: route_file=%r, '
                 'name=%r, ensure=%r, gateway=%r, interface=%r, network=%r, '
                 'netmask=%r, options=%r, %r, %r'),
-            route_file, name, ensure, gateway, interface, network, netmask,
-            options, args, kwargs)
+              route_file, name, ensure, gateway, interface, network, netmask,
+              options, args, kwargs)
     route = {
         'name': name,
         'ensure': ensure,
@@ -234,9 +234,8 @@ def create_or_update_item(
         log.info(_('creating a new route %s=%r'), 'name', name)
         current_routes.append(route)
     elif len(existing_routes) > 1:
-        raise core.MultipleRoutesFoundError(_(
-                'Unable to update. '
-                'More than one route with such name exists.'))
+        raise core.MultipleRoutesFoundError(
+            _('Unable to update. More than one route with such name exists.'))
     else:
         existing_route = existing_routes[0]
         old_name = existing_route['name']
@@ -260,8 +259,8 @@ def update_item(
     log.debug(_('called `update_item` with arguments: route_file=%r, '
                 'name=%r, ensure=%r, gateway=%r, interface=%r, network=%r, '
                 'netmask=%r, options=%r, %r, %r'),
-            route_file, name, ensure, gateway, interface, network, netmask,
-            options, args, kwargs)
+              route_file, name, ensure, gateway, interface, network, netmask,
+              options, args, kwargs)
     route = {
         'name': name,
         'ensure': ensure,
@@ -278,12 +277,11 @@ def update_item(
     log.info(_('looking up if the route already exists'))
     existing_routes = list(core.find_existing(current_routes, route))
     if not existing_routes:
-        raise core.RouteNotFoundError(_(
-                'Unable to update. No route matching criteria found.'))
+        raise core.RouteNotFoundError(
+            _('Unable to update. No route matching criteria found.'))
     if len(existing_routes) > 1:
-        raise core.MultipleRoutesFoundError(_(
-                'Unable to update. '
-                'More than one route matching criteria exist.'))
+        raise core.MultipleRoutesFoundError(
+            _('Unable to update. More than one route matching criteria exist.'))
     existing_route = existing_routes[0]
     old_name = existing_route['name']
     log.info(_('updating existing route %s=%r'), 'name', old_name)
@@ -302,13 +300,13 @@ def delete_items(
         **kwargs):
     log.debug(_('called `delete_items` with arguments: route_file=%r, '
                 'value=%r, key=%r, ignore_case=%r, exact_match=%r, %r, %r'),
-             route_file, value, key, ignore_case, exact_match, args, kwargs)
+              route_file, value, key, ignore_case, exact_match, args, kwargs)
     with open(route_file) as fr:
         current_routes = core.parse_routes(fr)
         log.info(_('parsing routes from route file'))
         log.info(_('filtering out items matching filter: %s=%r'), key, value)
         new_routes = list(core.delete_routes(current_routes, value, key,
-                                               ignore_case, exact_match))
+                                             ignore_case, exact_match))
     rewrite_routes(new_routes, route_file)
     result = {'routes': new_routes}
     return json.dumps(result, indent=2)
