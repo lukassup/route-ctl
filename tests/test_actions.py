@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import (
-    absolute_import,   # Python 2.5+
-    print_function,    # Python 2.6+
-    unicode_literals,  # Python 2.6+
-    with_statement,    # Python 2.5+
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
 )
 
-import unittest
-import tempfile
 import os
 import shutil
+import tempfile
+import unittest
 
 from route_ctl import actions
 

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import (
-    absolute_import,   # Python 2.5+
-    print_function,    # Python 2.6+
-    unicode_literals,  # Python 2.6+
-    with_statement,    # Python 2.5+
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
 )
 
 import unittest
@@ -12,7 +12,8 @@ import unittest
 try:
     from io import StringIO
 except ImportError:
-    from cStringIO import StringIO  # Python 2
+    # NOTE: PY2 compat
+    from cStringIO import StringIO
 
 from route_ctl import core
 

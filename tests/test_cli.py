@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import (
-    absolute_import,   # Python 2.5+
-    print_function,    # Python 2.6+
-    unicode_literals,  # Python 2.6+
-    with_statement,    # Python 2.5+
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
 )
 
 import contextlib
@@ -13,17 +13,19 @@ import shlex
 import sys
 import unittest
 
+from route_ctl import cli
+
 try:
     from io import StringIO
 except ImportError:
-    from cStringIO import StringIO  # Python 2
+    # NOTE: PY2 compat
+    from cStringIO import StringIO
 
-from route_ctl import cli
-from route_ctl import _pyversion as v
-
-
-if v.PY3:
-    basestring = unicode = str
+try:
+    unicode, basestring
+except NameError:
+    # NOTE: PY2 compat
+    unicode = basestring = str
 
 
 @contextlib.contextmanager
@@ -58,17 +60,15 @@ class TestCLI(unittest.TestCase):
         command = ''
         with suppress_output():
             # check if exits
-            self.assertRaises(
-                SystemExit,
-                cli.parser.parse_args,
-                shlex.split(command),
-            )
+            self.assertRaises(SystemExit,
+                              cli.parser.parse_args,
+                              shlex.split(command))
             # check exit status
             try:
                 cli.parser.parse_args(shlex.split(command))
-            except SystemExit as e:
-                self.assertEqual(e.code, 2)
-            # XXX: this always fails on Python 2 because argparse prints
+            except SystemExit as err:
+                self.assertEqual(err.code, 2)
+            # NOTE: this always fails on Python 2 because argparse prints
             # help in str not unicode.
             # self.assertRegexpMatches(
             #     stderr.getvalue(),
@@ -78,31 +78,24 @@ class TestCLI(unittest.TestCase):
 
     def test_displays_help_with_subcommand(self):
         """CLI should display help with the `help` subcommand."""
-        if v.PY26:
+        if sys.version_info < (2, 7):
             return
         command = 'help'
         args = cli.parser.parse_args(shlex.split(command))
         with capture_output() as (stdout, stderr):
             # check if exits
-            self.assertRaises(
-                SystemExit,
-                args.action,
-                vars(args)
-            )
+            self.assertRaises(SystemExit, args.action, vars(args))
             # check output
-            self.assertRegexpMatches(
-                stdout.getvalue(),
-                r'^usage:',
-            )
+            self.assertRegexpMatches(stdout.getvalue(), r'^usage:')
             # check exit status
             try:
                 args.action(**vars(args))
-            except SystemExit as e:
-                self.assertEqual(e.code, 0)
+            except SystemExit as err:
+                self.assertEqual(err.code, 0)
 
     def test_displays_help_with_option(self):
         """CLI should display help with with `-h` option for all subcommands."""
-        if v.PY26:
+        if sys.version_info < (2, 7):
             return
         commands = [
             '-h',
@@ -118,18 +111,13 @@ class TestCLI(unittest.TestCase):
         for command in commands:
             with capture_output() as (stdout, stderr):
                 # check if exits
-                self.assertRaises(
-                    SystemExit,
-                    cli.parser.parse_args,
-                    shlex.split(command),
-                )
+                self.assertRaises(SystemExit,
+                                  cli.parser.parse_args,
+                                  shlex.split(command))
                 # check output
-                self.assertRegexpMatches(
-                    stdout.getvalue(),
-                    r'^usage:',
-                )
+                self.assertRegexpMatches(stdout.getvalue(), r'^usage:')
                 # check exit code
                 try:
                     cli.parser.parse_args(shlex.split(command))
-                except SystemExit as e:
-                    self.assertEqual(e.code, 0)
+                except SystemExit as err:
+                    self.assertEqual(err.code, 0)
