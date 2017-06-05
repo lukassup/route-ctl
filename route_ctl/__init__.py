@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 
-"""Sample application module."""
+"""route-ctl application module."""
 
 from __future__ import (
-    absolute_import,    # 2.5+
-    print_function,     # 2.6+
-    unicode_literals,   # 2.6+
-    with_statement,     # 2.5+
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
 )
 
 import logging
 
-try:  # Python 2.7+
+try:
     from logging import NullHandler
 except ImportError:
+    # NOTE: PY2 compat
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
