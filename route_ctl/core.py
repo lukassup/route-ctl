@@ -3,19 +3,21 @@
 """Core route parsing and manipulation functionality."""
 
 from __future__ import (
-    absolute_import,   # Python 2.5+
-    print_function,    # Python 2.6+
-    unicode_literals,  # Python 2.6+
-    with_statement,    # Python 2.5+
+    absolute_import,
+    print_function,
+    unicode_literals,
+    with_statement,
 )
 
 import re
 
-from . import _pyversion as v
-
-
-if v.PY2:
+try:
     from itertools import ifilter as filter, imap as map, izip as zip
+except ImportError:
+    # NOTE: import succeeds in PY2, but fails in PY3. It's fine.
+    # filter, map and zip return iterators by default in PY3.
+    pass
+
 
 R = re.compile
 
@@ -55,16 +57,16 @@ ROUTE_BLOCK_HEAD = R(
 
 ROUTE_BLOCK_ITEM = R(
     r'''
-    ^(\s*)                      # indentation
-    (?P<key>\S+)\s*             # Ruby hash key
-    =>\s*                       # Ruby hash arrow
-    ([\'"]?)                    # maybe quotes
-    (?P<value>.*?)              # Ruby hash value
-    \3                          # closing quote
-    ,?                          # maybe a comma
-                                # (commas are optional for the last item)
-    [^\S\n\r]*                  # any non-line-end whitespace
-    (\#.*)?                     # maybe a comment
+    ^(\s*)                  # indentation
+    (?P<key>\S+)\s*         # Ruby hash key
+    =>\s*                   # Ruby hash arrow
+    ([\'"]?)                # maybe quotes
+    (?P<value>.*?)          # Ruby hash value
+    \3                      # closing quote
+    ,?                      # maybe a comma
+                            # (commas are optional for the last item)
+    [^\S\n\r]*              # any non-line-end whitespace
+    (\#.*)?                 # maybe a comment
     $
     ''',
     flags=re.VERBOSE)
@@ -231,7 +233,7 @@ def validate_route(current_routes, input_route):
         route_name = input_route['name']
     except KeyError:
         raise InvalidRouteError(
-                'Input route must have a value for the "name" key')
+            'Input route must have a value for the "name" key')
 
     def name_matcher(item, key='name', route_name=route_name):
         return item.get(key) == route_name
