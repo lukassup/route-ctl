@@ -131,7 +131,7 @@ VALID_ROUTES = [
 
 
 class TestFindHeader(unittest.TestCase):
-    """Test `find_header()` function."""
+    """Test `_find_file_header` method."""
 
     def test_header_present(self):
         """Should stop right after the header is found."""
@@ -155,7 +155,7 @@ class TestFindHeader(unittest.TestCase):
 
 
 class TestFindClosingBrace(unittest.TestCase):
-    """Test `find_closing_brace` function."""
+    """Test `_find_close_brace` method."""
 
     def test_closing_brace_present(self):
         """Should raise no exceptions if a closing brace is found."""
@@ -175,7 +175,7 @@ class TestFindClosingBrace(unittest.TestCase):
 
 
 class TestParseRoute(unittest.TestCase):
-    """Test `parse_route` function."""
+    """Test `parse_one` method."""
 
     def test_one_route_present(self):
         """Should correctly return the parsed route."""
