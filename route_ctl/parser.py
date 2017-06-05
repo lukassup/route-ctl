@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-
 """Core route parsing functionality."""
 
 from __future__ import absolute_import, unicode_literals
 
 import re
+
+from contextlib import contextmanager
 
 from . import core
 
@@ -75,8 +76,11 @@ class EndTokenNotFoundError(RouteParserError):
 class RouteParser(object):
     """Route parser."""
 
-    def __init__(self, lines, file_header=ROUTE_FILE_HEADER,
-                 block_head=ROUTE_BLOCK_HEAD, block_body=ROUTE_BLOCK_BODY,
+    def __init__(self,
+                 lines,
+                 file_header=ROUTE_FILE_HEADER,
+                 block_head=ROUTE_BLOCK_HEAD,
+                 block_body=ROUTE_BLOCK_BODY,
                  block_close=CLOSE_BRACE):
         self._lines = lines
         self._file_header = file_header
@@ -120,7 +124,7 @@ class RouteParser(object):
 
         """
         route = self._find_block_start()
-        # Code block body parser
+        # begin code block body parsing
         for line in self._lines:
             if self._block_close.match(line):
                 break
@@ -152,3 +156,25 @@ class RouteParser(object):
                 yield self.parse_one()
         except StartTokenNotFoundError:
             return
+
+    @classmethod
+    @contextmanager
+    def open(cls, filename, mode='r', *args, **kwargs):
+        """File parser context manager.
+
+        Example:
+
+        >>> with RouteParser.open('my_route_file.pp') as parser:
+        ...     for route in parser.parse_all():
+        ...         print(route)
+
+        """
+        with open(filename, mode, *args, **kwargs) as lines:
+            yield cls(lines)
+
+
+if __name__ == '__main__':
+    from sys import argv
+    with RouteParser.open(argv[1]) as parser:
+        for route in parser.parse_all():
+            print(route)
