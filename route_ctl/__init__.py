@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """route-ctl application module."""
 
 from __future__ import (
@@ -18,5 +17,6 @@ except ImportError:
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
+
 
 logging.getLogger(__name__).addHandler(NullHandler())
