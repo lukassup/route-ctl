@@ -2,4 +2,3 @@ FROM python:2.7
 ADD ./ /code/
 RUN pip install /code/
 CMD python /code/setup.py test
-
