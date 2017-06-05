@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """route-ctl application actions."""
 
 from __future__ import (
@@ -17,12 +16,13 @@ import shutil
 import string
 
 from . import core
+from .parser import RouteParser
 
 try:
     unicode
     basestring
 except NameError:
-    # NOTE: PY2 compatibility
+    # NOTE: PY2 compat
     unicode = basestring = str
 
 
@@ -115,7 +115,7 @@ def rewrite_routes(
 
 
 def list_items(route_file, *args, **kwargs):
-    current_routes = core.parse_routes(route_file)
+    current_routes = RouteParser.parse_all(route_file)
     log.info(_('parsing routes from route file'))
     result = {'routes': list(current_routes)}
     log.info(_('listing all items'))
@@ -130,7 +130,7 @@ def find_items(
         exact_match,
         *args,
         **kwargs):
-    current_routes = core.parse_routes(route_file)
+    current_routes = RouteParser.parse_all(route_file)
     log.info(_('creating a route filter: %s=%r'), key, value)
     found_routes = core.find_routes(current_routes, value, key,
                                     ignore_case, exact_match)
@@ -164,7 +164,7 @@ def validate_item(
     if options:
         route['options'] = options
     log.info(_('parsing routes from route file'))
-    current_routes = core.parse_routes(route_file)
+    current_routes = RouteParser.parse_all(route_file)
     log.info(_('validating item %r'), name)
     validated = core.validate_route(current_routes, route)
     result = {'input': route, 'output': validated}
@@ -179,7 +179,7 @@ def batch_validate_items(
     log.info(_('loading routes from JSON'))
     src_routes = json.load(source_file)['routes']
     log.info(_('parsing routes from route file'))
-    current_routes = core.parse_routes(route_file)
+    current_routes = RouteParser.parse_all(route_file)
     log.info(_('batch validating routes'))
     validated = core.validate_routes(current_routes, src_routes)
     result = {'routes': list(validated)}
@@ -226,8 +226,8 @@ def create_or_update_item(
     if options:
         route['options'] = options
     log.info(_('parsing routes from route file'))
-    with open(route_file) as fr:
-        current_routes = list(core.parse_routes(fr))
+    with RouteParser.open(route_file) as parser:
+        current_routes = list(parser.parse_all())
     log.info(_('looking up if the route already exists'))
     existing_routes = list(core.find_existing(current_routes, route))
     if not existing_routes:
@@ -272,8 +272,8 @@ def update_item(
     if options:
         route['options'] = options
     log.info(_('parsing routes from route file'))
-    with open(route_file) as fr:
-        current_routes = list(core.parse_routes(fr))
+    with RouteParser.open(route_file) as parser:
+        current_routes = list(parser.parse_all())
     log.info(_('looking up if the route already exists'))
     existing_routes = list(core.find_existing(current_routes, route))
     if not existing_routes:
@@ -301,9 +301,9 @@ def delete_items(
     log.debug(_('called `delete_items` with arguments: route_file=%r, '
                 'value=%r, key=%r, ignore_case=%r, exact_match=%r, %r, %r'),
               route_file, value, key, ignore_case, exact_match, args, kwargs)
-    with open(route_file) as fr:
-        current_routes = core.parse_routes(fr)
+    with RouteParser.open(route_file) as parser:
         log.info(_('parsing routes from route file'))
+        current_routes = list(parser.parse_all())
         log.info(_('filtering out items matching filter: %s=%r'), key, value)
         new_routes = list(core.delete_routes(current_routes, value, key,
                                              ignore_case, exact_match))

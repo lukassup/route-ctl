@@ -139,6 +139,19 @@ class RouteParser(object):
             raise EndTokenNotFoundError('No match for code block end.')
         return route
 
+    @classmethod
+    def parse_all(cls, lines):
+        """Itertively parse all routes in an iterable of strings (e.g. a file).
+
+        Example:
+
+        >>> with open('my_route_file.pp') as route_file:
+        ...     for route in RouteParser.parse_all(route_file):
+        ...         print(route)
+
+        """
+        return cls(lines).parse_all()
+
     def parse_all(self):
         """Itertively parse all routes in an iterable of strings (e.g. a file).
 
