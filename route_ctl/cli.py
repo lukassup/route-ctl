@@ -11,14 +11,14 @@ import os
 import sys
 
 from .actions import (
-    list_cli_action,
-    create_cli_action,
-    find_cli_action,
-    validate_cli_action,
-    batch_validate_cli_action,
-    batch_replace_cli_action,
-    update_cli_action,
-    delete_cli_action,
+    list_items,
+    create_or_update_item,
+    find_items,
+    validate_item,
+    batch_validate_items,
+    batch_replace_items,
+    update_item,
+    delete_items,
 )
 
 # logging
@@ -201,7 +201,7 @@ list_action = subparsers.add_parser(
         ro_config_args,
     ]
 )
-list_action.set_defaults(action=list_cli_action)
+list_action.set_defaults(action=list_items)
 
 # find subcommand
 find_action = subparsers.add_parser(
@@ -213,7 +213,7 @@ find_action = subparsers.add_parser(
         retrieve_delete_parser,
     ]
 )
-find_action.set_defaults(action=find_cli_action)
+find_action.set_defaults(action=find_items)
 
 # validate subcommand
 validate_action = subparsers.add_parser(
@@ -225,7 +225,7 @@ validate_action = subparsers.add_parser(
         create_validate_update_parser,
     ]
 )
-validate_action.set_defaults(action=validate_cli_action)
+validate_action.set_defaults(action=validate_item)
 
 # batch-validate subcommand
 batch_validate_action = subparsers.add_parser(
@@ -236,7 +236,7 @@ batch_validate_action = subparsers.add_parser(
         ro_config_args,
     ]
 )
-batch_validate_action.set_defaults(action=batch_validate_cli_action)
+batch_validate_action.set_defaults(action=batch_validate_items)
 batch_validate_action.add_argument(
     'source_file',
     metavar='JSON_FILE',
@@ -253,7 +253,7 @@ batch_replace_action = subparsers.add_parser(
         rw_config_args,
     ]
 )
-batch_replace_action.set_defaults(action=batch_replace_cli_action)
+batch_replace_action.set_defaults(action=batch_replace_items)
 batch_replace_action.add_argument(
     'source_file',
     metavar='JSON_FILE',
@@ -271,7 +271,7 @@ create_action = subparsers.add_parser(
         create_validate_update_parser,
     ]
 )
-create_action.set_defaults(action=create_cli_action)
+create_action.set_defaults(action=create_or_update_item)
 
 # update subcommand
 update_action = subparsers.add_parser(
@@ -283,7 +283,7 @@ update_action = subparsers.add_parser(
         create_validate_update_parser,
     ]
 )
-update_action.set_defaults(action=update_cli_action)
+update_action.set_defaults(action=update_item)
 
 # delete subcommand
 delete_action = subparsers.add_parser(
@@ -295,7 +295,7 @@ delete_action = subparsers.add_parser(
         retrieve_delete_parser,
     ]
 )
-delete_action.set_defaults(action=delete_cli_action)
+delete_action.set_defaults(action=delete_items)
 
 
 def main():
@@ -306,6 +306,6 @@ def main():
     logging.basicConfig(level=log_level)
     log.debug(_('Starting with cli arguments: %r'), vars(args))
     try:
-        args.action(**vars(args))
+        print(args.action(**vars(args)), file=args.out_file)
     except Exception as e:
         log.exception(e, exc_info=debug_on)

@@ -115,7 +115,8 @@ def rewrite_routes(
 
 
 def list_items(route_file, *args, **kwargs):
-    current_routes = RouteParser.parse_all(route_file)
+    parser = RouteParser(route_file)
+    current_routes = parser.parse_all()
     log.info(_('parsing routes from route file'))
     result = {'routes': list(current_routes)}
     log.info(_('listing all items'))
@@ -130,7 +131,8 @@ def find_items(
         exact_match,
         *args,
         **kwargs):
-    current_routes = RouteParser.parse_all(route_file)
+    parser = RouteParser(route_file)
+    current_routes = parser.parse_all()
     log.info(_('creating a route filter: %s=%r'), key, value)
     found_routes = core.find_routes(current_routes, value, key,
                                     ignore_case, exact_match)
@@ -164,7 +166,8 @@ def validate_item(
     if options:
         route['options'] = options
     log.info(_('parsing routes from route file'))
-    current_routes = RouteParser.parse_all(route_file)
+    parser = RouteParser(route_file)
+    current_routes = parser.parse_all()
     log.info(_('validating item %r'), name)
     validated = core.validate_route(current_routes, route)
     result = {'input': route, 'output': validated}
@@ -179,7 +182,8 @@ def batch_validate_items(
     log.info(_('loading routes from JSON'))
     src_routes = json.load(source_file)['routes']
     log.info(_('parsing routes from route file'))
-    current_routes = RouteParser.parse_all(route_file)
+    parser = RouteParser(route_file)
+    current_routes = parser.parse_all()
     log.info(_('batch validating routes'))
     validated = core.validate_routes(current_routes, src_routes)
     result = {'routes': list(validated)}
@@ -310,37 +314,3 @@ def delete_items(
     rewrite_routes(new_routes, route_file)
     result = {'routes': new_routes}
     return json.dumps(result, indent=2)
-
-
-# CLI wrappers
-
-def list_cli_action(out_file, *args, **kwargs):
-    print(list_items(*args, **kwargs), file=out_file)
-
-
-def find_cli_action(out_file, *args, **kwargs):
-    print(find_items(*args, **kwargs), file=out_file)
-
-
-def validate_cli_action(out_file, *args, **kwargs):
-    print(validate_item(*args, **kwargs), file=out_file)
-
-
-def batch_validate_cli_action(out_file, *args, **kwargs):
-    print(batch_validate_items(*args, **kwargs), file=out_file)
-
-
-def batch_replace_cli_action(out_file, *args, **kwargs):
-    print(batch_replace_items(*args, **kwargs), file=out_file)
-
-
-def create_cli_action(out_file, *args, **kwargs):
-    print(create_or_update_item(*args, **kwargs), file=out_file)
-
-
-def update_cli_action(out_file, *args, **kwargs):
-    print(update_item(*args, **kwargs), file=out_file)
-
-
-def delete_cli_action(out_file, *args, **kwargs):
-    print(delete_items(*args, **kwargs), file=out_file)

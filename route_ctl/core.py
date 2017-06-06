@@ -34,11 +34,7 @@ class InvalidRouteError(RouteError):
     pass
 
 
-def find_routes(routes,
-                value,
-                key='name',
-                ignore_case=False,
-                exact_match=True):
+def find_routes(routes, value, key='name', ignore_case=False, exact_match=True):
     """Itertively find all routes in an iterable of strings (e.g. a file)."""
 
     if exact_match and not ignore_case:
@@ -57,11 +53,7 @@ def find_routes(routes,
     return filter(matcher, routes)
 
 
-def delete_routes(routes,
-                  value,
-                  key='name',
-                  ignore_case=False,
-                  exact_match=True):
+def delete_routes(routes, value, key='name', ignore_case=False, exact_match=True):
     """Delete all routes matching criteria."""
 
     if exact_match and not ignore_case:
