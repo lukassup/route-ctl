@@ -11,8 +11,6 @@ from __future__ import (
 import gettext
 import json
 import logging
-import os
-import shutil
 
 from . import core
 from .builder import RouteBuilder
@@ -24,15 +22,6 @@ log = logging.getLogger(__name__)
 # l18n
 trans = gettext.translation(__name__, 'locale', fallback=True)
 _ = trans.gettext
-
-
-def do_backup(original, suffix='.backup', copy_file=shutil.copy2):
-    if not os.path.exists(original) or not os.path.isfile(original):
-        log.info(_('no backup needed'))
-    else:
-        backup = original + suffix
-        log.info(_('backing up file %r -> %r'), original, backup)
-        copy_file(original, backup)
 
 
 def rewrite_routes(routes, route_file):
