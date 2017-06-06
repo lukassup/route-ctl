@@ -11,7 +11,6 @@ from __future__ import (
 import tempfile
 import string
 import shutil
-import sys
 
 try:
     unicode
