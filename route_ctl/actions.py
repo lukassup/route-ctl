@@ -13,9 +13,9 @@ import json
 import logging
 import os
 import shutil
-import string
 
 from . import core
+from .builder import RouteBuilder
 from .parser import RouteParser
 
 try:
@@ -34,57 +34,6 @@ trans = gettext.translation(__name__, 'locale', fallback=True)
 _ = trans.gettext
 
 
-HEADER = '''\
-##
-#   This file was automatically generated
-#
-
-class netroutes::routes {\
-'''
-
-FOOTER = '}'
-
-TEMPLATE = '''\
-  network_route {{ {name}:
-    ensure    => {ensure},
-    gateway   => {gateway},
-    interface => {interface},
-    netmask   => {netmask},
-    network   => {network},
-    options   => {options},
-  }}\
-'''
-
-# core functionality
-
-
-class RouteFormatter(string.Formatter):
-    """Silently skips missing values by inserting empty strings."""
-
-    def __init__(self, missing='', var='$'):
-        """Optionally initialized with a ``missing`` placeholder string."""
-        self.missing = repr(missing)
-        self.var = var
-
-    def get_field(self, field_name, *args, **kwargs):
-        """Quietly return ``None`` for missing keys and attributes."""
-        try:
-            value, field = super(self.__class__, self).get_field(field_name, *args, **kwargs)
-        except (KeyError, AttributeError):
-            return None, field_name
-        # NOTE: PY2 compatibility. This should reliably quote both Unicode and
-        # non-Unicode strings in Python 2 and 3.
-        if isinstance(value, basestring) and not value.startswith(self.var):
-            value = repr(str(value))
-        return value, field
-
-    def format_field(self, value, spec):
-        """Insert the ``missing`` placeholder if value is falsy."""
-        if value is None:
-            value = self.missing
-        return super(self.__class__, self).format_field(value, spec)
-
-
 def do_backup(original, suffix='.backup', copy_file=shutil.copy2):
     if not os.path.exists(original) or not os.path.isfile(original):
         log.info(_('no backup needed'))
@@ -94,24 +43,13 @@ def do_backup(original, suffix='.backup', copy_file=shutil.copy2):
         copy_file(original, backup)
 
 
-def rewrite_routes(
-        routes,
-        route_file,
-        backup=True,
-        header=HEADER,
-        template=TEMPLATE,
-        footer=FOOTER):
-    entry_fmt = RouteFormatter()
+def rewrite_routes(routes, route_file, backup=True):
+    builder = RouteBuilder()
     if backup:
         do_backup(route_file)
     log.info(_('rewriting routes to file %r'), route_file)
-    with open(route_file, 'w') as fw:
-        if header:
-            print(header, file=fw)
-        for route in routes:
-            print(entry_fmt.format(template, **route), file=fw)
-        if footer:
-            print(footer, file=fw)
+    with open(route_file, 'w') as _file:
+        builder.write(routes, dest_file=_file)
 
 
 def list_items(route_file, *args, **kwargs):
