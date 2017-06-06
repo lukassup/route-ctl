@@ -2,7 +2,11 @@
 
 """A command-line interface module for managing Puppet routes."""
 
-from __future__ import absolute_import, unicode_literals
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+)
 
 import argparse
 import gettext
@@ -11,14 +15,14 @@ import os
 import sys
 
 from .actions import (
-    list_items,
-    create_or_update_item,
-    find_items,
-    validate_item,
-    batch_validate_items,
     batch_replace_items,
-    update_item,
+    batch_validate_items,
+    create_or_update_item,
     delete_items,
+    find_items,
+    list_items,
+    update_item,
+    validate_item,
 )
 
 # logging
