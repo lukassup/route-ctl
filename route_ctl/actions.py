@@ -18,14 +18,6 @@ from . import core
 from .builder import RouteBuilder
 from .parser import RouteParser
 
-try:
-    unicode
-    basestring
-except NameError:
-    # NOTE: PY2 compat
-    unicode = basestring = str
-
-
 # logging
 log = logging.getLogger(__name__)
 
@@ -43,13 +35,10 @@ def do_backup(original, suffix='.backup', copy_file=shutil.copy2):
         copy_file(original, backup)
 
 
-def rewrite_routes(routes, route_file, backup=True):
+def rewrite_routes(routes, route_file):
     builder = RouteBuilder()
-    if backup:
-        do_backup(route_file)
     log.info(_('rewriting routes to file %r'), route_file)
-    with open(route_file, 'w') as _file:
-        builder.write(routes, dest_file=_file)
+    builder.write(routes, dest_filename=route_file)
 
 
 def list_items(route_file, *args, **kwargs):
