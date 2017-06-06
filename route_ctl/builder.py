@@ -10,7 +10,7 @@ from __future__ import (
 
 import tempfile
 import string
-import shutil
+import os
 
 try:
     unicode
@@ -18,7 +18,6 @@ try:
 except NameError:
     # NOTE: PY2 compat
     unicode = basestring = str
-
 
 HEADER = '''\
 ##
@@ -57,7 +56,8 @@ class RouteFormatter(string.Formatter):
     def get_field(self, field_name, args, kwargs):
         """Quietly return ``None`` for missing keys and attributes."""
         try:
-            value, field = super(RouteFormatter, self).get_field(field_name, args, kwargs)
+            value, field = super(RouteFormatter, self).get_field(
+                field_name, args, kwargs)
         except (KeyError, AttributeError):
             return None, field_name
         # NOTE: PY2 compatibility. This should reliably quote both Unicode and
@@ -76,7 +76,10 @@ class RouteFormatter(string.Formatter):
 class RouteBuilder(object):
     """Route output file builder."""
 
-    def __init__(self, template=TEMPLATE, header=HEADER, footer=FOOTER,
+    def __init__(self,
+                 template=TEMPLATE,
+                 header=HEADER,
+                 footer=FOOTER,
                  formatter=RouteFormatter):
         self._template = template
         self._header = header
@@ -98,17 +101,38 @@ class RouteBuilder(object):
             for lines in self.build(routes):
                 dest_file.writelines(lines)
 
-    def write(self, routes, dest_filename, atomic=True):
-        """Write formatted routes to file.
+    @staticmethod
+    def rotate_backups(base_filename, pattern='%s.%d', backups=5):
+        """Backup file rotator. Keeps five ``backups`` by default.
 
-        If ``atomic`` is used the output is written to a temporary file and
-        then moved over the original.
-        If operation is not ``atomic`` the original file is modified in place.
+        Taken from the ``logging`` module in Python standard library.
         """
+        if backups > 0:
+            for i in range(backups - 1, 0, -1):
+                sfn = pattern % (base_filename, i)
+                dfn = pattern % (base_filename, i + 1)
+                if os.path.exists(sfn):
+                    if os.path.exists(dfn):
+                        os.remove(dfn)
+                    os.rename(sfn, dfn)
+            dfn = pattern % (base_filename, 1)
+            if os.path.exists(dfn):
+                os.remove(dfn)
+            if os.path.exists(base_filename):
+                os.rename(base_filename, dfn)
+
+    def write(self, routes, dest_filename, atomic=True, backups=5):
+        """Safely write formatted routes to file.
+
+        ``atomic`` operation writes the output to a temporary file and moves it over the original.
+
+        non-``atomic`` operation modifies the original file in place.
+        """
+        self.rotate_backups(dest_filename, backups=backups)
         if atomic:
             _file = tempfile.NamedTemporaryFile(mode='w', delete=False)
         else:
             _file = open(dest_filename, 'w')
         self._write(routes, _file)
         if atomic:
-            shutil.move(_file.name, dest_filename)
+            os.rename(_file.name, dest_filename)
