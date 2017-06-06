@@ -27,10 +27,6 @@ HEADER = '''\
 class netroutes::routes {
 '''
 
-FOOTER = '''\
-}
-'''
-
 TEMPLATE = '''\
   network_route {{ {name}:
     ensure    => {ensure},
@@ -40,6 +36,10 @@ TEMPLATE = '''\
     network   => {network},
     options   => {options},
   }}
+'''
+
+FOOTER = '''\
+}
 '''
 
 
@@ -95,12 +95,6 @@ class RouteBuilder(object):
         if self._footer:
             yield self._footer
 
-    def _write(self, routes, dest_file):
-        """Write formatted routes to file (low-level implementation)."""
-        with dest_file:
-            for lines in self.build(routes):
-                dest_file.writelines(lines)
-
     @staticmethod
     def rotate_backups(base_filename, pattern='%s.%d', backups=5):
         """Backup file rotator. Keeps five ``backups`` by default.
@@ -121,6 +115,12 @@ class RouteBuilder(object):
             if os.path.exists(base_filename):
                 os.rename(base_filename, dfn)
 
+    def _write(self, routes, dest_file):
+        """Write formatted routes to file (low-level implementation)."""
+        with dest_file:
+            for lines in self.build(routes):
+                dest_file.writelines(lines)
+
     def write(self, routes, dest_filename, atomic=True, backups=5):
         """Safely write formatted routes to file.
 
@@ -133,6 +133,6 @@ class RouteBuilder(object):
             _file = tempfile.NamedTemporaryFile(mode='w', delete=False)
         else:
             _file = open(dest_filename, 'w')
-        self._write(routes, _file)
+        self._write(routes, dest_file=_file)
         if atomic:
             os.rename(_file.name, dest_filename)

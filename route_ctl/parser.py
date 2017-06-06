@@ -171,10 +171,3 @@ class RouteParser(object):
         """
         with open(filename, mode, *args, **kwargs) as lines:
             yield cls(lines)
-
-
-if __name__ == '__main__':
-    from sys import argv
-    with RouteParser.open(argv[1]) as parser:
-        for route in parser.parse_all():
-            print(route)
