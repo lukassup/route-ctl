@@ -24,9 +24,9 @@ trans = gettext.translation(__name__, 'locale', fallback=True)
 _ = trans.gettext
 
 
-def rewrite_routes(routes, route_file):
+def write_routes(routes, route_file):
     builder = RouteBuilder()
-    log.info(_('rewriting routes to file %r'), route_file)
+    log.info(_('writing routes to file %r'), route_file)
     builder.write(routes, dest_filename=route_file)
 
 
@@ -114,7 +114,7 @@ def batch_replace_items(
     log.info(_('loading routes from JSON'))
     src_routes = list(json.load(source_file)['routes'])
     log.info(_('batch replacing routes'))
-    rewrite_routes(src_routes, route_file)
+    write_routes(src_routes, route_file)
     result = {'routes': src_routes}
     return json.dumps(result, indent=2)
 
@@ -161,7 +161,7 @@ def create_or_update_item(
         old_name = existing_route['name']
         log.info(_('updating existing route %s=%r'), 'name', old_name)
         existing_route.update(route)
-    rewrite_routes(current_routes, route_file)
+    write_routes(current_routes, route_file)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
@@ -206,7 +206,7 @@ def update_item(
     old_name = existing_route['name']
     log.info(_('updating existing route %s=%r'), 'name', old_name)
     existing_route.update(route)
-    rewrite_routes(current_routes, route_file)
+    write_routes(current_routes, route_file)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
@@ -227,6 +227,6 @@ def delete_items(
         log.info(_('filtering out items matching filter: %s=%r'), key, value)
         new_routes = list(core.delete_routes(current_routes, value, key,
                                              ignore_case, exact_match))
-    rewrite_routes(new_routes, route_file)
+    write_routes(new_routes, route_file)
     result = {'routes': new_routes}
     return json.dumps(result, indent=2)

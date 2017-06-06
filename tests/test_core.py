@@ -142,6 +142,15 @@ class TestValidateRoute(unittest.TestCase):
 
     def test_route_partially_valid(self):
         """Should partially validate route."""
+        origin_route = {
+            'name': '172.17.67.0/24',
+            'ensure': 'present',
+            'gateway': '192.168.0.2',
+            'interface': 'eth0',
+            'netmask': '255.255.255.0',
+            'network': '172.17.67.0',
+            'options': 'table 200',
+        }
         partially_valid_route = {
             'name': '172.17.67.0/24',
             'ensure': 'present',
@@ -151,7 +160,7 @@ class TestValidateRoute(unittest.TestCase):
             'network': '172.17.67.0',
             'options': 'table 200',
         }
-        valid_items = core.validate_route(VALID_ROUTES, partially_valid_route)
+        valid_items = core.validate_route(origin_route, partially_valid_route)
         self.assertTrue(any(valid_items.values()))
         self.assertEqual(sum(valid_items.values()), 5)
 
@@ -166,23 +175,32 @@ class TestValidateRoute(unittest.TestCase):
             'network': '172.17.67.0',
             'options': 'table 200',
         }
-        valid_items = core.validate_route(VALID_ROUTES, valid_route)
+        valid_items = core.validate_route(valid_route, valid_route)
         self.assertTrue(all(valid_items.values()))
         self.assertEqual(sum(valid_items.values()), len(valid_items))
 
     def test_route_invalid(self):
         """Should invalidate route."""
+        valid_route = {
+            'name': '172.17.67.0/24',
+            'ensure': 'present',
+            'gateway': '10.0.2.2',
+            'interface': 'eth0',
+            'netmask': '255.255.255.0',
+            'network': '172.17.67.0',
+            'options': 'table 200',
+        }
         invalid_route = {
-            'name': '192.168.0.0/24',
+            'name': '192.168.0.0/23',
             'ensure': 'present',
             'gateway': '192.168.0.1',
             'interface': 'eth1',
-            'netmask': '255.255.255.0',
+            'netmask': '255.255.128.0',
             'network': '192.168.0.0',
         }
-        valid_items = core.validate_route(VALID_ROUTES, invalid_route)
-        self.assertTrue(not any(valid_items.values()))
-        self.assertEqual(sum(valid_items.values()), 0)
+        valid_items = core.validate_route(valid_route, invalid_route)
+        self.assertFalse(all(valid_items.values()))
+        self.assertNotEqual(sum(valid_items.values()), len(valid_items))
 
 
 class TestValidateRoutes(unittest.TestCase):

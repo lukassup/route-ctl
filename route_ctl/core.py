@@ -39,16 +39,16 @@ def find_routes(routes, value, key='name', ignore_case=False, exact_match=True):
 
     if exact_match and not ignore_case:
         def matcher(item, key=key, value=value):
-            return item.get(key) == value
+            return value == item.get(key, '')
     else:
         flags = re.IGNORECASE if ignore_case else 0
         regexp = re.compile(value, flags=flags)
         if exact_match:
             def matcher(item, key=key, regexp=regexp):
-                return regexp.match(item.get(key))
+                return regexp.match(item.get(key, ''))
         else:
             def matcher(item, key=key, regexp=regexp):
-                return regexp.search(item.get(key))
+                return regexp.search(item.get(key, ''))
 
     return filter(matcher, routes)
 
@@ -57,19 +57,19 @@ def delete_routes(routes, value, key='name', ignore_case=False, exact_match=True
     """Delete all routes matching criteria."""
 
     if exact_match and not ignore_case:
-        def no_matcher(item, key=key, value=value):
-            return not item.get(key) == value
+        def matcher(item, key=key, value=value):
+            return value != item.get(key, '')
     else:
         flags = re.IGNORECASE if ignore_case else 0
         regexp = re.compile(value, flags=flags)
         if exact_match:
-            def no_matcher(item, key=key, regexp=regexp):
-                return not regexp.match(item.get(key))
+            def matcher(item, key=key, regexp=regexp):
+                return not regexp.match(item.get(key, ''))
         else:
-            def no_matcher(item, key=key, regexp=regexp):
-                return not regexp.search(item.get(key))
+            def matcher(item, key=key, regexp=regexp):
+                return not regexp.search(item.get(key, ''))
 
-    return filter(no_matcher, routes)
+    return filter(matcher, routes)
 
 
 def find_existing(routes, route):
@@ -83,55 +83,30 @@ def find_existing(routes, route):
     return filter(same, routes)
 
 
-def validate_route(current_routes, input_route):
-    validated = {}.fromkeys(input_route, False)
-
-    try:
-        route_name = input_route['name']
-    except KeyError:
-        raise InvalidRouteError(
-            'Input route must have a value for the "name" key')
-
-    def name_matcher(item, key='name', route_name=route_name):
-        return item.get(key) == route_name
-
-    found_routes = list(filter(name_matcher, current_routes))
-    if not found_routes:
-        # everything should be set to False when a route is not found
-        return validated
-    if len(found_routes) > 1:
-        raise MultipleRoutesFoundError(
-            'More than one route with name {0!r} found'.format(route_name))
-
-    found_route = found_routes[0]
-    for key in input_route:
-        validated[key] = input_route[key] == found_route.get(key)
+def validate_route(origin_route, other_route):
+    validated = {}.fromkeys(other_route, False)
+    if origin_route:
+        try:
+            other_route['network']
+            other_route['netmask']
+        except KeyError:
+            raise InvalidRouteError(
+                'Input route must have the "network" and "netmask" keys')
+        for key in other_route:
+            validated[key] = other_route[key] == origin_route.get(key)
     return validated
 
 
-def validate_routes(current_routes, input_routes):
+def validate_routes(origin_routes, other_routes):
     results = []
-
-    for input_route in input_routes:
-        try:
-            route_name = input_route['name']
-        except KeyError:
-            raise InvalidRouteError('Input route must have the "name" key')
-
-        def name_matcher(item, key='name', route_name=route_name):
-            return item.get(key) == route_name
-
-        found_routes = list(filter(name_matcher, current_routes))
+    for other_route in other_routes:
+        found_routes = list(find_existing(origin_routes, other_route))
         if not found_routes:
-            raise RouteNotFoundError(
-                'No route with name {0!r}'.format(route_name))
+            return {}.fromkeys(other_route, False)
         if len(found_routes) > 1:
             raise MultipleRoutesFoundError(
-                'More than one route with name {0!r} found'.format(route_name))
-
+                'More than one route for network address / subnet mask pair found.')
         found_route = found_routes[0]
-        validated = {}.fromkeys(input_route, False)
-        for key in input_route:
-            validated[key] = input_route[key] == found_route.get(key)
-        results.append({'input': input_route, 'output': validated})
+        validated = validate_route(found_route, other_route)
+        results.append({'input': other_route, 'output': validated})
     return results
