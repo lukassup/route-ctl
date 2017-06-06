@@ -75,16 +75,11 @@ def delete_routes(routes, value, key='name', ignore_case=False, exact_match=True
 def find_existing(routes, route):
     """Check if a route is already present.
 
-    a route is already present if:
-    - a route with the same name exists
-    - a route with the same network/netmask exists
+    Route is considered present if the same network/netmask pair exists.
     """
     def same(item, route=route):
-        return (
-            (item.get('name') == route.get('name')) or
-            (item.get('network') == route.get('network') and
-             item.get('netmask') == route.get('netmask'))
-        )
+        return (item.get('network') == route.get('network') and
+                item.get('netmask') == route.get('netmask'))
     return filter(same, routes)
 
 

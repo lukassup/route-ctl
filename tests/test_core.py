@@ -79,23 +79,7 @@ class TestFindRoutes(unittest.TestCase):
 class TestFindExisting(unittest.TestCase):
     """Test `find_existing()` function."""
 
-    def test_find_existing_by_name(self):
-        """Should find an existing route by with the same name."""
-        expected_route = {
-            'name': 'default',  # this should match
-            'ensure': 'absent',
-            'gateway': '192.168.0.1',
-            'interface': 'wlan0',
-            'netmask': '255.0.0.0',
-            'network': '1.0.0.0'
-        }
-        existing_routes = list(core.find_existing(
-            VALID_ROUTES, expected_route))
-        self.assertEqual(len(existing_routes), 1)
-        self.assertTrue(existing_routes[0] in VALID_ROUTES)
-        self.assertEqual(existing_routes[0], VALID_ROUTES[1])
-
-    def test_find_existing_by_net(self):
+    def test_find_existing(self):
         """Should find and existing route with the same network/netmask pair."""
         expected_route = {
             'name': 'my-network',
@@ -110,7 +94,7 @@ class TestFindExisting(unittest.TestCase):
         self.assertTrue(existing_routes[0] in VALID_ROUTES)
         self.assertEqual(existing_routes[0], VALID_ROUTES[1])
 
-    def test_find_existing_absent(self):
+    def test_find_nonexisting(self):
         """Should not find any existing routes."""
         not_expected_route = {
             'name': 'random-network',
