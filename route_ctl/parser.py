@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Core route parsing functionality."""
+"""core route parsing functionality."""
 
 from __future__ import absolute_import, unicode_literals
 
 import re
-
-from contextlib import contextmanager
+from gettext import translation
+from logging import getLogger
 
 from . import core
 
+# l18n
+_ = translation(__name__, 'locale', fallback=True).gettext
 
 ROUTE_FILE_HEADER = re.compile(
     r'''
