@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-"""A command-line interface module for managing Puppet routes."""
+"""command-line interface module for managing Puppet routes."""
 
 from __future__ import (
     absolute_import,
@@ -9,10 +8,10 @@ from __future__ import (
 )
 
 import argparse
-import gettext
 import logging
 import os
 import sys
+from gettext import translation
 
 from .actions import (
     batch_replace_items,
@@ -28,10 +27,8 @@ from .actions import (
 # logging
 log = logging.getLogger(__name__)
 
-
 # l18n
-trans = gettext.translation(__name__, 'locale', fallback=True)
-_ = trans.gettext
+_ = translation(__name__, 'locale', fallback=True).gettext
 
 
 def _help(*args, **kwargs):
