@@ -8,9 +8,12 @@ from __future__ import (
     with_statement,
 )
 
-import tempfile
-import string
 import os
+import shutil
+import string
+import tempfile
+from gettext import translation
+from logging import getLogger
 
 try:
     unicode
@@ -18,6 +21,9 @@ try:
 except NameError:
     # NOTE: PY2 compat
     unicode = basestring = str
+
+# l18n
+_ = translation(__name__, 'locale', fallback=True).gettext
 
 HEADER = '''\
 ##
@@ -60,14 +66,14 @@ class RouteFormatter(string.Formatter):
                 field_name, args, kwargs)
         except (KeyError, AttributeError):
             return None, field_name
-        # NOTE: PY2 compatibility. This should reliably quote both Unicode and
+        # NOTE: PY2 compat: this should reliably quote both Unicode and
         # non-Unicode strings in Python 2 and 3.
         if isinstance(value, basestring) and not value.startswith(self.var):
             value = repr(str(value))
         return value, field
 
     def format_field(self, value, format_spec):
-        """Insert the ``missing`` placeholder if value is ``false``-like."""
+        """Insert the ``missing`` placeholder if value is ``False``-like."""
         if value is None:
             value = self.missing
         return super(RouteFormatter, self).format_field(value, format_spec)
@@ -77,62 +83,69 @@ class RouteBuilder(object):
     """Route output file builder."""
 
     def __init__(self,
+                 filename=None,
                  template=TEMPLATE,
                  header=HEADER,
                  footer=FOOTER,
                  formatter=RouteFormatter):
-        self._template = template
-        self._header = header
-        self._footer = footer
-        self._formatter = formatter()
+        self.filename = filename
+        self.__template = template
+        self.__header = header
+        self.__footer = footer
+        self.__formatter = formatter()
+        self.__log = getLogger(__name__)
 
-    def build(self, routes):
+    def __build(self, items):
         """Iteratively build the output."""
-        if self._header:
-            yield self._header
-        for route in routes:
-            yield self._formatter.format(self._template, **route)
-        if self._footer:
-            yield self._footer
+        if self.__header:
+            yield self.__header
+        for item in items:
+            yield self.__formatter.format(self.__template, **item)
+        if self.__footer:
+            yield self.__footer
 
-    @staticmethod
-    def rotate_backups(base_filename, pattern='%s.%d', backups=5):
+    def rotate_backups(self, pattern='%s.%d', backups=5):
         """Backup file rotator. Keeps five ``backups`` by default.
 
         Taken from the ``logging`` module in Python standard library.
         """
         if backups > 0:
             for i in range(backups - 1, 0, -1):
-                sfn = pattern % (base_filename, i)
-                dfn = pattern % (base_filename, i + 1)
+                sfn = pattern % (self.filename, i)
+                dfn = pattern % (self.filename, i + 1)
                 if os.path.exists(sfn):
                     if os.path.exists(dfn):
                         os.remove(dfn)
                     os.rename(sfn, dfn)
-            dfn = pattern % (base_filename, 1)
+            dfn = pattern % (self.filename, 1)
             if os.path.exists(dfn):
                 os.remove(dfn)
-            if os.path.exists(base_filename):
-                os.rename(base_filename, dfn)
+            if os.path.exists(self.filename):
+                os.rename(self.filename, dfn)
 
-    def _write(self, routes, dest_file):
+    def __write(self, items, dest_file):
         """Write formatted routes to file (low-level implementation)."""
         with dest_file:
-            for lines in self.build(routes):
+            for lines in self.__build(items):
                 dest_file.writelines(lines)
 
-    def write(self, routes, dest_filename, atomic=True, backups=5):
+    def write(self, items, atomic=True, backups=5, move=shutil.move):
         """Safely write formatted routes to file.
 
         ``atomic`` operation writes the output to a temporary file and moves it over the original.
 
         non-``atomic`` operation modifies the original file in place.
         """
-        self.rotate_backups(dest_filename, backups=backups)
+        self.__log.debug(_('Rotating backup files. Keeping last %d file(s)'), backups)
+        self.rotate_backups(backups=backups)
         if atomic:
-            _file = tempfile.NamedTemporaryFile(mode='w', delete=False)
+            self.__log.debug(_('Creating a temporary file (atomic operation)'))
+            file_ = tempfile.NamedTemporaryFile(mode='w', delete=False)
         else:
-            _file = open(dest_filename, 'w')
-        self._write(routes, dest_file=_file)
+            self.__log.debug(_('Overwriting file in place (non-atomic operation)'))
+            file_ = open(self.filename, 'w')
+        self.__log.info(_('Writing entries to file'))
+        self.__write(items, dest_file=file_)
         if atomic:
-            os.rename(_file.name, dest_filename)
+            self.__log.debug(_('Moving temporary file over the original'))
+            move(file_.name, self.filename)

@@ -35,7 +35,7 @@ class TestBackup(unittest.TestCase):
         backup = self.file_path + '.1'
         self.assertTrue(os.path.isfile(self.file_path))
         self.assertFalse(os.path.isfile(backup))
-        RouteBuilder.rotate_backups(self.file_path, pattern='%s.%d')
+        RouteBuilder(self.file_path).rotate_backups(pattern='%s.%d')
         self.assertFalse(os.path.isfile(self.file_path))
         self.assertTrue(os.path.isfile(backup))
         with open(backup) as fr:
@@ -47,11 +47,11 @@ class TestBackup(unittest.TestCase):
         date_a = datetime.now()
         with open(self.file_path, 'w') as fw:
             fw.write(str(date_a))
-        RouteBuilder.rotate_backups(self.file_path, pattern='%s.%d')
+        RouteBuilder(self.file_path).rotate_backups(pattern='%s.%d')
         date_b = datetime.now()
         with open(self.file_path, 'w') as fw:
             fw.write(str(date_b))
-        RouteBuilder.rotate_backups(self.file_path, pattern='%s.%d')
+        RouteBuilder(self.file_path).rotate_backups(pattern='%s.%d')
         self.assertFalse(os.path.isfile(self.file_path))
         self.assertTrue(os.path.isfile(self.file_path + '.1'))
         self.assertTrue(os.path.isfile(self.file_path + '.2'))
@@ -66,15 +66,15 @@ class TestBackup(unittest.TestCase):
         date_a = datetime.now()
         with open(self.file_path, 'w') as fw:
             fw.write(str(date_a))
-        RouteBuilder.rotate_backups(self.file_path, pattern='%s.%d', backups=2)
+        RouteBuilder(self.file_path).rotate_backups(pattern='%s.%d', backups=2)
         date_b = datetime.now()
         with open(self.file_path, 'w') as fw:
             fw.write(str(date_b))
-        RouteBuilder.rotate_backups(self.file_path, pattern='%s.%d', backups=2)
+        RouteBuilder(self.file_path).rotate_backups(pattern='%s.%d', backups=2)
         date_c = datetime.now()
         with open(self.file_path, 'w') as fw:
             fw.write(str(date_c))
-        RouteBuilder.rotate_backups(self.file_path, pattern='%s.%d', backups=2)
+        RouteBuilder(self.file_path).rotate_backups(pattern='%s.%d', backups=2)
         self.assertFalse(os.path.isfile(self.file_path))
         self.assertTrue(os.path.isfile(self.file_path + '.1'))
         self.assertTrue(os.path.isfile(self.file_path + '.2'))
@@ -88,7 +88,7 @@ class TestBackup(unittest.TestCase):
         date_a = datetime.now()
         with open(self.file_path, 'w') as fw:
             fw.write(str(date_a))
-        RouteBuilder.rotate_backups(self.file_path, pattern='%s.%d', backups=0)
+        RouteBuilder(self.file_path).rotate_backups(pattern='%s.%d', backups=0)
         self.assertTrue(os.path.isfile(self.file_path))
         self.assertFalse(os.path.isfile(self.file_path + '.1'))
         with open(self.file_path) as fr:
