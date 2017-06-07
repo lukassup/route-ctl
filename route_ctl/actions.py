@@ -8,20 +8,20 @@ from __future__ import (
     with_statement,
 )
 
-import gettext
 import json
 import logging
+from gettext import translation
 
 from . import core
 from .builder import RouteBuilder
 from .parser import RouteParser
+from .manager import RouteManager
 
 # logging
 log = logging.getLogger(__name__)
 
 # l18n
-trans = gettext.translation(__name__, 'locale', fallback=True)
-_ = trans.gettext
+_ = translation(__name__, 'locale', fallback=True).gettext
 
 
 def write_routes(routes, route_file):
