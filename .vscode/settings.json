@@ -7,5 +7,6 @@
         "-p",
         "test_*.py"
     ],
-    "python.unitTest.unittestEnabled": true
+    "python.unitTest.unittestEnabled": true,
+    "python.formatting.provider": "yapf"
 }
