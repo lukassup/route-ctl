@@ -138,7 +138,7 @@ class TestFindHeader(unittest.TestCase):
         with StringIO(VALID_ROUTE_FILE) as route_file:
             parser = RouteParser(route_file)
             try:
-                parser._find_file_header()
+                parser._RouteParser__find_file_header()
             except Exception as err:
                 self.fail(err)
             line = route_file.readline().rstrip()
@@ -151,57 +151,57 @@ class TestFindHeader(unittest.TestCase):
         with StringIO(MISSING_HEADER_FILE) as route_file:
             parser = RouteParser(route_file)
             # NOTE: there is no context manager for ``assertRaises``` in PY26.
-            self.assertRaises(StartTokenNotFoundError, parser._find_file_header)
+            self.assertRaises(StartTokenNotFoundError, parser._RouteParser__find_file_header)
 
 
-class TestFindClosingBrace(unittest.TestCase):
-    """Test `_find_close_brace` method."""
+class TestFindBlockClose(unittest.TestCase):
+    """Test `__find_block_close` method."""
 
-    def test_closing_brace_present(self):
+    def test_block_close_present(self):
         """Should raise no exceptions if a closing brace is found."""
         with StringIO(VALID_ROUTE_FILE) as route_file:
             parser = RouteParser(route_file)
             try:
-                parser._find_close_brace()
+                parser._RouteParser__find_block_close()
             except Exception as err:
                 self.fail(err)
 
-    def test_closing_brace_absent(self):
+    def test_block_close_missing(self):
         """Correct exception should be raised when missing a close brace."""
         with StringIO(MISSING_CLOSE_BRACE_FILE) as route_file:
             parser = RouteParser(route_file)
             # NOTE: there is no context manager for ``assertRaises``` in PY26.
-            self.assertRaises(EndTokenNotFoundError, parser.parse_one)
+            self.assertRaises(EndTokenNotFoundError, parser._RouteParser__parse_one)
 
 
 class TestParseRoute(unittest.TestCase):
-    """Test `parse_one` method."""
+    """Test `__parse_one` method."""
 
     def test_one_route_present(self):
         """Should correctly return the parsed route."""
         with StringIO(SINGLE_VALID_ROUTE_FILE) as route_file:
             parser = RouteParser(route_file)
-            self.assertEqual(parser.parse_one(), VALID_ROUTES[0])
+            self.assertEqual(parser._RouteParser__parse_one(), VALID_ROUTES[0])
 
     def test_many_routes_present(self):
         """Should correctly return the first parsed route."""
         with StringIO(VALID_ROUTE_FILE) as route_file:
             parser = RouteParser(route_file)
-            self.assertEqual(parser.parse_one(), VALID_ROUTES[0])
+            self.assertEqual(parser._RouteParser__parse_one(), VALID_ROUTES[0])
 
     def test_missing_close_brace(self):
         """Should raise the correct exception when missing a close brace."""
         with StringIO(MISSING_CLOSE_BRACE_FILE) as route_file:
             parser = RouteParser(route_file)
             # NOTE: there is no context manager for ``assertRaises``` in PY26.
-            self.assertRaises(EndTokenNotFoundError, parser.parse_one)
+            self.assertRaises(EndTokenNotFoundError, parser._RouteParser__parse_one)
 
     def test_missing_open_brace(self):
         """Should raise then correct exception when missing a close brace."""
         with StringIO(MISSING_OPEN_BRACE_FILE) as route_file:
             parser = RouteParser(route_file)
             # NOTE: there is no context manager for ``assertRaises``` in PY26.
-            self.assertRaises(StartTokenNotFoundError, parser.parse_one)
+            self.assertRaises(StartTokenNotFoundError, parser._RouteParser__parse_one)
 
 
 class TestParseRoutes(unittest.TestCase):
@@ -211,4 +211,4 @@ class TestParseRoutes(unittest.TestCase):
         """Should parse all routes correctly."""
         with StringIO(VALID_ROUTE_FILE) as route_file:
             parser = RouteParser(route_file)
-            self.assertEqual(list(parser.parse_all()), VALID_ROUTES)
+            self.assertEqual(list(parser.parse()), VALID_ROUTES)
