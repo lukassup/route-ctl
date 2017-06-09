@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""core route parsing functionality."""
+"""route entry block parsing functionality."""
 
 from __future__ import absolute_import, unicode_literals
 
@@ -76,8 +76,15 @@ class EndTokenNotFoundError(RouteParserError):
 
 
 class RouteParser(object):
-    """Route parser."""
+    """Parser for route entry block key-value extraction.
 
+    Handles files and other iterables of strings transparently.
+
+    The parser class is multiple inheritance safe and can be used as a mixin
+    for other components.
+
+    See the `pydoc` generated docs for public API reference.
+    """
     def __init__(self,
                  lines=None,
                  filename=None,
@@ -87,7 +94,7 @@ class RouteParser(object):
                  file_header=ROUTE_FILE_HEADER,
                  file_footer=CLOSE_BRACE):
         self.filename = filename
-        self.__lines = lines
+        self.__lines = iter(lines) if lines else lines
         self.__block_head = block_head
         self.__block_body = block_body
         self.__block_close = block_close
@@ -96,59 +103,61 @@ class RouteParser(object):
         self.__log = getLogger(__name__)
 
     def __open_file(self, filename=None):
-        """Open file for reading."""
+        """Open file for reading if `self.__lines` is a file-object."""
         if filename is not None:
             self.filename = filename
         elif not self.filename and not self.__lines:
             raise RouteParserError(_('Nothing to parse'))
-        if self.filename and not self.__lines:
+        if self.filename and not self.__lines or getattr(self.__lines, 'closed', False):
             self.__log.debug(_('Opening file for reading'))
             self.__lines = open(self.filename, mode='r')
 
     def __close_file(self):
         """Close file if needed."""
-        if self.__lines and not self.__lines.closed:
+        if self.__lines and not getattr(self.__lines, 'closed', True):
             self.__log.debug(_('Closing file'))
             self.__lines.close()
 
-    def __find_token(self, token):
-        """Seek file until a token string is found."""
+    def __find_token(self, token_regexp):
+        """Seek iterable until a token matching regular expression is found
+        and return the named match group dictionary.
+        """
         for line in self.__lines:
-            token_match = token.match(line)
+            token_match = token_regexp.match(line)
             if token_match:
                 return token_match.groupdict()
         raise RouteParserError
 
     def __find_block_start(self):
-        """Find the beginning of a code block."""
+        """Find the beginning of an entry code block."""
         try:
             return self.__find_token(self.__block_head)
         except RouteParserError:
-            raise StartTokenNotFoundError('No match for code block start.')
+            raise StartTokenNotFoundError(_('No match for entry block start'))
 
     def __find_block_close(self):
-        """Find block closing token."""
+        """Find entry block closing token."""
         try:
             return self.__find_token(self.__block_close)
         except RouteParserError:
-            raise EndTokenNotFoundError('No match for close brace.')
+            raise EndTokenNotFoundError(_('No match for close brace'))
 
     def __find_file_header(self):
         """Find the file header."""
         try:
             return self.__find_token(self.__file_header)
         except RouteParserError:
-            raise StartTokenNotFoundError('No match for file header.')
+            raise StartTokenNotFoundError(_('No match for file header'))
 
     def __find_file_footer(self):
         """Find the file footer."""
         try:
             return self.__find_token(self.__file_footer)
         except RouteParserError:
-            raise EndTokenNotFoundError('No match for file footer.')
+            raise EndTokenNotFoundError(_('No match for file footer'))
 
     def __parse_one(self):
-        """Parse one route block."""
+        """Parse one entry block."""
         route = self.__find_block_start()
         # begin code block body parsing
         for line in self.__lines:
@@ -163,23 +172,23 @@ class RouteParser(object):
                 value = item['value']
                 route[key] = value
         else:
-            raise EndTokenNotFoundError('No match for code block end.')
+            raise EndTokenNotFoundError(_('No match for code block end'))
         return route
 
     def __parse_all(self):
-        """Itertively parse all routes."""
+        """Itertively parse all entries."""
         try:
             self.__log.debug(_('Seeking file until header is found'))
             self.__find_file_header()
-            self.__log.debug(_('Parsing all routes'))
+            self.__log.debug(_('Parsing all entries'))
             while True:
                 yield self.__parse_one()
         except StartTokenNotFoundError:
-            self.__log.debug(_('Finished parsing routes'))
+            self.__log.debug(_('Finished parsing entries'))
             return
 
     def parse(self, filename=None):
-        """Itertively parse all routes in an iterable of strings or file.
+        """Itertively parse all entries in an iterable of strings or file.
 
         Example:
 
@@ -189,13 +198,15 @@ class RouteParser(object):
 
         """
         self.__open_file(filename=filename)
-        with self.__lines:
+        try:
             for item in self.__parse_all():
                 yield item
+        finally:
+            self.__close_file()
 
     @classmethod
     def read(cls, filename):
-        """Iteratively parse all routes from a file (classmethod).
+        """Iteratively parse all entries from a file (classmethod).
 
         Example:
 
