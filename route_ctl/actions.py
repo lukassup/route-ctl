@@ -13,8 +13,6 @@ import logging
 from gettext import translation
 
 from . import core
-from .builder import RouteBuilder
-from .parser import RouteParser
 from .manager import RouteManager
 
 # logging
@@ -24,36 +22,21 @@ log = logging.getLogger(__name__)
 _ = translation(__name__, 'locale', fallback=True).gettext
 
 
-def write_routes(routes, route_file):
-    builder = RouteBuilder()
-    log.info(_('writing routes to file %r'), route_file)
-    builder.write(routes, dest_filename=route_file)
-
-
 def list_items(route_file, *args, **kwargs):
-    parser = RouteParser(route_file)
-    current_routes = parser.parse_all()
-    log.info(_('parsing routes from route file'))
-    result = {'routes': list(current_routes)}
-    log.info(_('listing all items'))
+    mgr = RouteManager(route_file)
+    result = mgr.list_items()
     return json.dumps(result, indent=2)
 
 
-def find_items(
-        route_file,
-        value,
+def find_items(route_file,
         key,
+        value,
         ignore_case,
         exact_match,
         *args,
         **kwargs):
-    parser = RouteParser(route_file)
-    current_routes = parser.parse_all()
-    log.info(_('creating a route filter: %s=%r'), key, value)
-    found_routes = core.find_routes(current_routes, value, key,
-                                    ignore_case, exact_match)
-    log.info(_('parsing routes from route file'))
-    result = {'routes': list(found_routes)}
+    mgr = RouteManager(route_file)
+    result = mgr.find_items(value, key, ignore_case, exact_match)
     return json.dumps(result, indent=2)
 
 
@@ -68,55 +51,31 @@ def validate_item(
         options=None,
         *args,
         **kwargs):
-    route = {'name': name}
-    if ensure:
-        route['ensure'] = ensure
-    if gateway:
-        route['gateway'] = gateway
-    if interface:
-        route['interface'] = interface
-    if netmask:
-        route['netmask'] = netmask
-    if network:
-        route['network'] = network
-    if options:
-        route['options'] = options
-    log.info(_('parsing routes from route file'))
-    parser = RouteParser(route_file)
-    current_routes = parser.parse_all()
-    log.info(_('validating item %r'), name)
-    validated = core.validate_route(current_routes, route)
-    result = {'input': route, 'output': validated}
+    _route = {
+        'name': name,
+        'ensure': ensure,
+        'gateway': gateway,
+        'interface': interface,
+        'netmask': netmask,
+        'network': network,
+        'options': options,
+    }
+    # Drop None values to prevent unnecessary validation
+    route = dict(filter(lambda item: item[1] is not None, _route.items()))
+    mgr = RouteManager(route_file)
+    result = mgr.validate_item(route)
     return json.dumps(result, indent=2)
 
 
-def batch_validate_items(
-        route_file,
-        source_file,
-        *args,
-        **kwargs):
-    log.info(_('loading routes from JSON'))
-    src_routes = json.load(source_file)['routes']
-    log.info(_('parsing routes from route file'))
-    parser = RouteParser(route_file)
-    current_routes = parser.parse_all()
-    log.info(_('batch validating routes'))
-    validated = core.validate_routes(current_routes, src_routes)
-    result = {'routes': list(validated)}
+def batch_validate_items(route_file, source_file, *args, **kwargs):
+    mgr = RouteManager(route_file)
+    result = mgr.validate_items(json_file=source_file)
     return json.dumps(result, indent=2)
 
 
-def batch_replace_items(
-        route_file,
-        source_file,
-        *args,
-        **kwargs):
-    log.info(_('loading routes from JSON'))
-    src_routes = list(json.load(source_file)['routes'])
-    log.info(_('batch replacing routes'))
-    write_routes(src_routes, route_file)
-    result = {'routes': src_routes}
-    return json.dumps(result, indent=2)
+def batch_replace_items(route_file, source_file, *args, **kwargs):
+    mgr = RouteManager(route_file)
+    mgr.replace(json_file=source_file)
 
 
 def create_or_update_item(
@@ -145,9 +104,8 @@ def create_or_update_item(
     }
     if options:
         route['options'] = options
-    log.info(_('parsing routes from route file'))
-    with RouteParser.open(route_file) as parser:
-        current_routes = list(parser.parse_all())
+    mgr = RouteManager(route_file)
+    current_routes = list(mgr.parse())
     log.info(_('looking up if the route already exists'))
     existing_routes = list(core.find_existing(current_routes, route))
     if not existing_routes:
@@ -161,7 +119,7 @@ def create_or_update_item(
         old_name = existing_route['name']
         log.info(_('updating existing route %s=%r'), 'name', old_name)
         existing_route.update(route)
-    write_routes(current_routes, route_file)
+    mgr.write(current_routes)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
@@ -191,9 +149,8 @@ def update_item(
     }
     if options:
         route['options'] = options
-    log.info(_('parsing routes from route file'))
-    with RouteParser.open(route_file) as parser:
-        current_routes = list(parser.parse_all())
+    mgr = RouteManager(route_file)
+    current_routes = list(mgr.parse())
     log.info(_('looking up if the route already exists'))
     existing_routes = list(core.find_existing(current_routes, route))
     if not existing_routes:
@@ -206,27 +163,17 @@ def update_item(
     old_name = existing_route['name']
     log.info(_('updating existing route %s=%r'), 'name', old_name)
     existing_route.update(route)
-    write_routes(current_routes, route_file)
+    mgr.write(current_routes)
     return json.dumps({'routes': current_routes}, indent=2)
 
 
 def delete_items(
         route_file,
-        value,
         key,
+        value,
         ignore_case,
         exact_match,
         *args,
         **kwargs):
-    log.debug(_('called `delete_items` with arguments: route_file=%r, '
-                'value=%r, key=%r, ignore_case=%r, exact_match=%r, %r, %r'),
-              route_file, value, key, ignore_case, exact_match, args, kwargs)
-    with RouteParser.open(route_file) as parser:
-        log.info(_('parsing routes from route file'))
-        current_routes = list(parser.parse_all())
-        log.info(_('filtering out items matching filter: %s=%r'), key, value)
-        new_routes = list(core.delete_routes(current_routes, value, key,
-                                             ignore_case, exact_match))
-    write_routes(new_routes, route_file)
-    result = {'routes': new_routes}
-    return json.dumps(result, indent=2)
+    mgr = RouteManager(route_file)
+    mgr.delete_items(key, value, ignore_case, exact_match)
