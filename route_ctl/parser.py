@@ -4,7 +4,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import re
-from contextlib import contextmanager
 from gettext import translation
 from logging import getLogger
 
@@ -100,6 +99,8 @@ class RouteParser(object):
         """Open file for reading."""
         if filename is not None:
             self.filename = filename
+        elif not self.filename and not self.__lines:
+            raise RouteParserError(_('Nothing to parse'))
         if self.filename and not self.__lines:
             self.__log.debug(_('Opening file for reading'))
             self.__lines = open(self.filename, mode='r')
