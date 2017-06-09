@@ -101,38 +101,38 @@ class RouteManager(RouteParser, RouteBuilder):
     def exists(self, item):
         """Check if an entry is already present."""
         self.__log.debug(_('checking if entry exists'))
-        raise NotImplementedError
+        raise NotImplementedError(_('Not implemented'))
 
     def create_item(self, item):
         """Create an entry."""
         self.__log.info(_('creating an entry'))
         if self.exists(item):
             raise EntryAlreadyExistsError
-        raise NotImplementedError
+        raise NotImplementedError(_('Not implemented'))
 
     def create_items(self, items=None, json_file=None):
         """Create many entries."""
         self.__log.info(_('creating entries'))
         items = self.__items_or_json(items, json_file)
-        raise NotImplementedError
+        raise NotImplementedError(_('Not implemented'))
 
     def update_item(self, item):
         """Update an entry."""
         self.__log.info(_('updating an entry'))
         if not self.exists(item):
             raise EntryNotFoundError
-        raise NotImplementedError
+        raise NotImplementedError(_('Not implemented'))
 
     def update_items(self, items=None, json_file=None):
         """Update many entries."""
         self.__log.info(_('updating entries'))
         items = self.__items_or_json(items, json_file)
-        raise NotImplementedError
+        raise NotImplementedError(_('Not implemented'))
 
-    def delete_items(self, key, value):
+    def delete_items(self, key, value, ignore_case=False, exact_match=True):
         """Delete entries."""
         self.__log.info(_('deleting entries'))
-        raise NotImplementedError
+        raise NotImplementedError(_('Not implemented'))
 
     def replace(self, items=None, json_file=None):
         """Replace all entries."""
@@ -145,10 +145,10 @@ class RouteManager(RouteParser, RouteBuilder):
         self.__log.info(_('validating an entry'))
         if not self.exists(item):
             raise EntryNotFoundError
-        raise NotImplementedError
+        raise NotImplementedError(_('Not implemented'))
 
     def validate_items(self, items=None, json_file=None):
         """Validate all entries."""
         self.__log.info(_('validating entries'))
         items = self.__items_or_json(items, json_file)
-        raise NotImplementedError
+        raise NotImplementedError(_('Not implemented'))
