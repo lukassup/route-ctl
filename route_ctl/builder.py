@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""route-ctl output printer."""
+"""route-ctl output formatting, building and writing."""
 
 from __future__ import (
     absolute_import,
@@ -134,12 +134,12 @@ class RouteBuilder(object):
 
         ``atomic`` operation writes the output to a temporary file and moves it over the original.
 
-        non-``atomic`` operation modifies the original file in place.
+        Non-``atomic`` operation modifies the original file in place.
         """
         self.__log.debug(_('Rotating backup files. Keeping last %d file(s)'), backups)
         self.rotate_backups(backups=backups)
         if atomic:
-            self.__log.debug(_('Creating a temporary file (atomic operation)'))
+            self.__log.debug(_('Opening a temporary file for writing (atomic operation)'))
             file_ = tempfile.NamedTemporaryFile(mode='w', delete=False)
         else:
             self.__log.debug(_('Overwriting file in place (non-atomic operation)'))
