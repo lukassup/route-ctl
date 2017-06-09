@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""command-line interface module for managing Puppet routes."""
+"""route-ctl command-line interface."""
 
 from __future__ import (
     absolute_import,
@@ -37,8 +37,6 @@ def _help(*args, **kwargs):
 
 # generics
 
-parser = argparse.ArgumentParser()
-
 common_args = argparse.ArgumentParser(add_help=False)
 common_args.add_argument(
     '-o',
@@ -57,7 +55,7 @@ log_group.add_argument(
     default=[logging.WARNING],
     action='append_const',
     const=-10,
-    help=_('be more verbose'),
+    help=_('more verbose'),
 )
 log_group.add_argument(
     '-q',
@@ -65,29 +63,17 @@ log_group.add_argument(
     dest='verbosity',
     action='append_const',
     const=10,
-    help=_('be more quiet'),
+    help=_('less verbose'),
 )
 
-ro_config_args = argparse.ArgumentParser(add_help=False)
-ro_config_args.add_argument(
+config_args = argparse.ArgumentParser(add_help=False)
+config_args.add_argument(
     '-F',
     '--route-file',
     metavar='FILE',
     dest='route_file',
-    type=argparse.FileType('r'),
     default=os.environ.get('ROUTE_FILE'),
-    help=_('route file (default: ROUTE_FILE envvar)'),
-)
-
-rw_config_args = argparse.ArgumentParser(add_help=False)
-rw_config_args.add_argument(
-    '-F',
-    '--route-file',
-    metavar='FILE',
-    dest='route_file',
-    # type=argparse.FileType('r+'),
-    default=os.environ.get('ROUTE_FILE'),
-    help=_('route file (default: ROUTE_FILE envvar)'),
+    help=_('route file (default: ROUTE_FILE environment variable)'),
 )
 
 retrieve_delete_parser = argparse.ArgumentParser(add_help=False)
@@ -178,6 +164,9 @@ create_validate_update_parser.add_argument(
     help=_('additional route options'),
 )
 
+# base parser
+parser = argparse.ArgumentParser()
+
 # install subcommands
 subparsers = parser.add_subparsers(help=_('subcommands'), dest='subcommand')
 subparsers.required = True
@@ -186,9 +175,7 @@ subparsers.required = True
 help_action = subparsers.add_parser(
     'help',
     help=_('show this help message and exit'),
-    parents=[
-        common_args,
-    ]
+    parents=[common_args]
 )
 
 help_action.set_defaults(action=_help)
@@ -199,7 +186,7 @@ list_action = subparsers.add_parser(
     help=_('list all routes'),
     parents=[
         common_args,
-        ro_config_args,
+        config_args,
     ]
 )
 list_action.set_defaults(action=list_items)
@@ -210,7 +197,7 @@ find_action = subparsers.add_parser(
     help=_('find routes by filter'),
     parents=[
         common_args,
-        ro_config_args,
+        config_args,
         retrieve_delete_parser,
     ]
 )
@@ -222,7 +209,7 @@ validate_action = subparsers.add_parser(
     help=_('validate a route from CLI arguments'),
     parents=[
         common_args,
-        ro_config_args,
+        config_args,
         create_validate_update_parser,
     ]
 )
@@ -234,7 +221,7 @@ batch_validate_action = subparsers.add_parser(
     help=_('batch validate items from a JSON file'),
     parents=[
         common_args,
-        ro_config_args,
+        config_args,
     ]
 )
 batch_validate_action.set_defaults(action=batch_validate_items)
@@ -251,7 +238,7 @@ batch_replace_action = subparsers.add_parser(
     help=_('batch replace items from a JSON file'),
     parents=[
         common_args,
-        rw_config_args,
+        config_args,
     ]
 )
 batch_replace_action.set_defaults(action=batch_replace_items)
@@ -268,7 +255,7 @@ create_action = subparsers.add_parser(
     help=_('create or update a route'),
     parents=[
         common_args,
-        rw_config_args,
+        config_args,
         create_validate_update_parser,
     ]
 )
@@ -280,7 +267,7 @@ update_action = subparsers.add_parser(
     help=_('update an existing rotue'),
     parents=[
         common_args,
-        rw_config_args,
+        config_args,
         create_validate_update_parser,
     ]
 )
@@ -292,7 +279,7 @@ delete_action = subparsers.add_parser(
     help=_('delete routes by filter'),
     parents=[
         common_args,
-        rw_config_args,
+        config_args,
         retrieve_delete_parser,
     ]
 )
