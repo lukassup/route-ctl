@@ -9,6 +9,7 @@ from __future__ import (
 )
 
 import json
+import re
 from gettext import translation
 from logging import getLogger
 
@@ -83,7 +84,19 @@ class RouteManager(RouteParser, RouteBuilder):
     def find_items(self, value, key, ignore_case=False, exact_match=True):
         """List entries matching key-value."""
         self.__log.info(_('listing matching entries'))
-        raise NotImplementedError
+        if not ignore_case:
+            if exact_match:
+                matcher = lambda item: value == item.get(key, '')
+            else:
+                matcher = lambda item: value in item.get(key, '')
+        else:
+            regexp = re.compile(value, flags=re.IGNORECASE)
+            if exact_match:
+                matcher = lambda item: regexp.match(item.get(key, ''))
+            else:
+                matcher = lambda item: regexp.search(item.get(key, ''))
+        items = filter(matcher, self.parse())
+        return {self.__key: list(items)}
 
     def exists(self, item):
         """Check if an entry is already present."""
