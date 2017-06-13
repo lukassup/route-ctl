@@ -39,19 +39,20 @@ Usage
 .. code-block::
 
     $ route-cli help
+    route-ctl help
     usage: route-ctl [-h]
-                    {help,list,find,validate,batch-validate,batch-replace,create,update,delete}
+                    {help,list,find,batch-replace,batch-create,batch-update,create,update,delete}
                     ...
 
     positional arguments:
-    {help,list,find,validate,batch-validate,batch-replace,create,update,delete}
+    {help,list,find,batch-replace,batch-create,batch-update,create,update,delete}
                             subcommands
         help                show this help message and exit
         list                list all routes
         find                find routes by filter
-        validate            validate a route from CLI arguments
-        batch-validate      batch validate items from a JSON file
         batch-replace       batch replace items from a JSON file
+        batch-create        batch create items from a JSON file
+        batch-update        batch update or create items from a JSON file
         create              create or update a route
         update              update an existing rotue
         delete              delete routes by filter
