@@ -68,7 +68,8 @@ class RouteManager(RouteParser, RouteBuilder):
             return self.from_json(json_file)
         elif items and not json_file:
             return items
-        raise InvalidOperation
+        raise InvalidOperation(
+            _("Can't use both arguments: 'items' and 'json_file'"))
 
     def list_items(self):
         """List all entries."""
