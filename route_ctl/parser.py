@@ -7,8 +7,6 @@ import re
 from gettext import translation
 from logging import getLogger
 
-from . import core
-
 # l18n
 _ = translation(__name__, 'locale', fallback=True).gettext
 
@@ -63,7 +61,7 @@ CLOSE_BRACE = re.compile(
     flags=re.VERBOSE)
 
 
-class RouteParserError(core.RouteError):
+class RouteParserError(Exception):
     pass
 
 

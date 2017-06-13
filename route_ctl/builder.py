@@ -8,11 +8,11 @@ from __future__ import (
     with_statement,
 )
 
-import os
 import shutil
 import string
 import tempfile
 from gettext import translation
+from datetime import datetime
 from logging import getLogger
 
 try:
@@ -104,24 +104,12 @@ class RouteBuilder(object):
         if self.__footer:
             yield self.__footer
 
-    def rotate_backups(self, pattern='%s.%d', backups=5):
-        """Backup file rotator. Keeps five ``backups`` by default.
-
-        Taken from the ``logging`` module in Python standard library.
-        """
-        if backups > 0:
-            for i in range(backups - 1, 0, -1):
-                sfn = pattern % (self.filename, i)
-                dfn = pattern % (self.filename, i + 1)
-                if os.path.exists(sfn):
-                    if os.path.exists(dfn):
-                        os.remove(dfn)
-                    os.rename(sfn, dfn)
-            dfn = pattern % (self.filename, 1)
-            if os.path.exists(dfn):
-                os.remove(dfn)
-            if os.path.exists(self.filename):
-                os.rename(self.filename, dfn)
+    def backup(self, stamp='%F_%H%M%S', copy=shutil.copy2):
+        """Create timestamped backup files."""
+        tstamp = datetime.now().strftime(stamp)
+        sfn = self.filename
+        dfn = '{0}.{1}.backup'.format(self.filename, tstamp)
+        copy(sfn, dfn)
 
     def __write(self, items, dest_file):
         """Write formatted routes to file (low-level implementation)."""
@@ -129,15 +117,15 @@ class RouteBuilder(object):
             for lines in self.__build(items):
                 dest_file.writelines(lines)
 
-    def write(self, items, atomic=True, backups=5, move=shutil.move):
+    def write(self, items, atomic=True, move=shutil.move):
         """Safely write formatted routes to file.
 
         ``atomic`` operation writes the output to a temporary file and moves it over the original.
 
         Non-``atomic`` operation modifies the original file in place.
         """
-        self.__log.debug(_('Rotating backup files. Keeping last %d file(s)'), backups)
-        self.rotate_backups(backups=backups)
+        self.__log.debug(_('Creating backup file'))
+        self.backup()
         if atomic:
             self.__log.debug(_('Opening a temporary file for writing (atomic operation)'))
             file_ = tempfile.NamedTemporaryFile(mode='w', delete=False)

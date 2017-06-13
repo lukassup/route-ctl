@@ -14,14 +14,14 @@ import sys
 from gettext import translation
 
 from .actions import (
+    batch_create_items,
     batch_replace_items,
-    batch_validate_items,
+    batch_update_items,
     create_or_update_item,
     delete_items,
     find_items,
     list_items,
     update_item,
-    validate_item,
 )
 
 # logging
@@ -114,13 +114,13 @@ retrieve_delete_parser.add_argument(
     help=_('find partial matches'),
 )
 
-create_validate_update_parser = argparse.ArgumentParser(add_help=False)
-create_validate_update_parser.add_argument(
+create_update_parser = argparse.ArgumentParser(add_help=False)
+create_update_parser.add_argument(
     'name',
     metavar='NAME',
     help=_('route name'),
 )
-create_validate_update_parser.add_argument(
+create_update_parser.add_argument(
     '-e',
     '--ensure',
     required=True,
@@ -128,35 +128,35 @@ create_validate_update_parser.add_argument(
     choices=['present', 'absent'],
     help=_('ensured route state'),
 )
-create_validate_update_parser.add_argument(
+create_update_parser.add_argument(
     '-g',
     '--gateway',
     required=True,
     metavar='GATEWAY',
     help=_('route gateway'),
 )
-create_validate_update_parser.add_argument(
+create_update_parser.add_argument(
     '-i',
     '--interface',
     required=True,
     metavar='INTERFACE',
     help=_('route egress interface'),
 )
-create_validate_update_parser.add_argument(
+create_update_parser.add_argument(
     '-m',
     '--netmask',
     required=True,
     metavar='NETMASK',
     help=_('route destination network mask'),
 )
-create_validate_update_parser.add_argument(
+create_update_parser.add_argument(
     '-n',
     '--network',
     required=True,
     metavar='NETWORK',
     help=_('route destination network'),
 )
-create_validate_update_parser.add_argument(
+create_update_parser.add_argument(
     '-O',
     '--options',
     required=False,
@@ -204,33 +204,33 @@ find_action = subparsers.add_parser(
 find_action.set_defaults(action=find_items)
 
 # validate subcommand
-validate_action = subparsers.add_parser(
-    'validate',
-    help=_('validate a route from CLI arguments'),
-    parents=[
-        common_args,
-        config_args,
-        create_validate_update_parser,
-    ]
-)
-validate_action.set_defaults(action=validate_item)
+# validate_action = subparsers.add_parser(
+#     'validate',
+#     help=_('validate a route from CLI arguments'),
+#     parents=[
+#         common_args,
+#         config_args,
+#         create_update_parser,
+#     ]
+# )
+# validate_action.set_defaults(action=validate_item)
 
 # batch-validate subcommand
-batch_validate_action = subparsers.add_parser(
-    'batch-validate',
-    help=_('batch validate items from a JSON file'),
-    parents=[
-        common_args,
-        config_args,
-    ]
-)
-batch_validate_action.set_defaults(action=batch_validate_items)
-batch_validate_action.add_argument(
-    'source_file',
-    metavar='JSON_FILE',
-    type=argparse.FileType('r'),
-    help=_('JSON format file'),
-)
+# batch_validate_action = subparsers.add_parser(
+#     'batch-validate',
+#     help=_('batch validate items from a JSON file'),
+#     parents=[
+#         common_args,
+#         config_args,
+#     ]
+# )
+# batch_validate_action.set_defaults(action=batch_validate_items)
+# batch_validate_action.add_argument(
+#     'source_file',
+#     metavar='JSON_FILE',
+#     type=argparse.FileType('r'),
+#     help=_('JSON format file'),
+# )
 
 # batch-replace subcommand
 batch_replace_action = subparsers.add_parser(
@@ -246,7 +246,41 @@ batch_replace_action.add_argument(
     'source_file',
     metavar='JSON_FILE',
     type=argparse.FileType('r'),
-    help=_('JSON format file'),
+    help=_('JSON file'),
+)
+
+# batch-create subcommand
+batch_create_action = subparsers.add_parser(
+    'batch-create',
+    help=_('batch create items from a JSON file'),
+    parents=[
+        common_args,
+        config_args,
+    ]
+)
+batch_create_action.set_defaults(action=batch_create_items)
+batch_create_action.add_argument(
+    'source_file',
+    metavar='JSON_FILE',
+    type=argparse.FileType('r'),
+    help=_('JSON file'),
+)
+
+# batch-update subcommand
+batch_update_action = subparsers.add_parser(
+    'batch-update',
+    help=_('batch update or create items from a JSON file'),
+    parents=[
+        common_args,
+        config_args,
+    ]
+)
+batch_update_action.set_defaults(action=batch_update_items)
+batch_update_action.add_argument(
+    'source_file',
+    metavar='JSON_FILE',
+    type=argparse.FileType('r'),
+    help=_('JSON file'),
 )
 
 # create subcommand
@@ -256,7 +290,7 @@ create_action = subparsers.add_parser(
     parents=[
         common_args,
         config_args,
-        create_validate_update_parser,
+        create_update_parser,
     ]
 )
 create_action.set_defaults(action=create_or_update_item)
@@ -268,7 +302,7 @@ update_action = subparsers.add_parser(
     parents=[
         common_args,
         config_args,
-        create_validate_update_parser,
+        create_update_parser,
     ]
 )
 update_action.set_defaults(action=update_item)
@@ -288,6 +322,7 @@ delete_action.set_defaults(action=delete_items)
 
 def main():
     """CLI entrypoint."""
+    from sys import exit
     args = parser.parse_args()
     log_level = max(logging.DEBUG, min(logging.CRITICAL, sum(args.verbosity)))
     debug_on = log_level <= logging.DEBUG
@@ -295,5 +330,7 @@ def main():
     log.debug(_('Starting with cli arguments: %r'), vars(args))
     try:
         print(args.action(**vars(args)), file=args.out_file)
+        exit(0)
     except Exception as e:
         log.exception(e, exc_info=debug_on)
+        exit(1)
