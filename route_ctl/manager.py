@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 """route-ctl entry manager."""
 
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    with_statement,
-)
+from __future__ import absolute_import, unicode_literals, with_statement
 
 import json
 import re
