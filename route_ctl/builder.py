@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 """route-ctl output formatting, building and writing."""
 
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    with_statement,
-)
+from __future__ import absolute_import, unicode_literals, with_statement
 
 import shutil
 import string
@@ -120,7 +115,8 @@ class RouteBuilder(object):
     def write(self, items, atomic=True, move=shutil.move):
         """Safely write formatted routes to file.
 
-        ``atomic`` operation writes the output to a temporary file and moves it over the original.
+        ``atomic`` operation writes the output to a temporary file and moves
+        it over the original.
 
         Non-``atomic`` operation modifies the original file in place.
         """
