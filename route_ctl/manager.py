@@ -69,7 +69,7 @@ class RouteManager(RouteParser, RouteBuilder):
         elif items and not json_file:
             return items
         raise InvalidOperation(
-            _("Can't use both arguments: 'items' and 'json_file'"))
+            _("Cannot use both arguments: 'items' and 'json_file'"))
 
     def list_items(self):
         """List all entries."""
@@ -153,21 +153,36 @@ class RouteManager(RouteParser, RouteBuilder):
                     _('Unable to update entry. No matching entry found.'))
             self.__log.info(_('Creating a new entry'))
             items.append(item)
-            self.write(items)
         else:
             self.__log.info(_('Updating an existing entry'))
-            raise NotImplementedError(_('Not implemented'))
+            raise NotImplementedError(_('Not implemented'))  # TODO
+        self.write(items)
 
-    def update_items(self, items=None, json_file=None):
+    def update_items(self, items=None, json_file=None, create=True):
         """Update many entries."""
         self.__log.info(_('Updating entries'))
-        items = self.__items_or_json(items, json_file)
-        raise NotImplementedError(_('Not implemented'))
+        new_items = self.__items_or_json(items, json_file)
+        current_items = list(self.parse())  # eager read
+        updated = 0
+        added = 0
+        for item in new_items:
+            if not self._exists(item, current_items):
+                if not create:
+                    raise EntryNotFoundError(
+                        _('Unable to update entry. No matching entry found.'))
+                self.__log.info(_('Creating a new entry'))
+                added += 1
+                current_items.append(item)
+            else:
+                updated += 1
+                raise NotImplementedError(_('Not implemented'))  # TODO
+        self.__log.info(_('Updated items: %d, added items: %d'), updated, added)
+        self.write(current_items)
 
     def delete_items(self, key, value, ignore_case=False, exact_match=True):
         """Delete entries."""
         self.__log.info(_('Deleting entries'))
-        raise NotImplementedError(_('Not implemented'))
+        raise NotImplementedError(_('Not implemented'))  # TODO 
 
     def replace(self, items=None, json_file=None):
         """Replace all entries."""
@@ -180,10 +195,10 @@ class RouteManager(RouteParser, RouteBuilder):
         self.__log.info(_('Validating an entry'))
         if not self._exists(item):
             raise EntryNotFoundError
-        raise NotImplementedError(_('Not implemented'))
+        raise NotImplementedError(_('Not implemented'))  # TODO
 
     def validate_items(self, items=None, json_file=None):
         """Validate all entries."""
         self.__log.info(_('Validating entries'))
         items = self.__items_or_json(items, json_file)
-        raise NotImplementedError(_('Not implemented'))
+        raise NotImplementedError(_('Not implemented'))  # TODO
