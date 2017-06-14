@@ -51,7 +51,7 @@ class RouteFormatter(string.Formatter):
 
     def __init__(self, missing='', var='$'):
         """Optionally initialized with a ``missing`` placeholder string."""
-        self.missing = repr(missing)
+        self.missing = repr(str(missing))
         self.var = var
 
     def get_field(self, field_name, args, kwargs):
