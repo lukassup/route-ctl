@@ -7,7 +7,7 @@ setup(
     author='Lukas Šupienis <lukassup@yahoo.com>',
     license='MIT',
     url='https://github.com/lukassup/route-ctl.git',
-    version='0.1.1',
+    version='0.1.2',
     name='route-ctl',
     packages=find_packages(exclude=['tests']),
     entry_points={

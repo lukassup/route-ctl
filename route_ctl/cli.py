@@ -328,8 +328,5 @@ def main():
         print(args.action(**vars(args)), file=args.out_file)
         exit(0)
     except Exception as e:
-        if sys.version_info > (2, 6):
-            log.exception(e, exc_info=debug_on)
-        else:
-            log.exception(e)
+        log.error(e, exc_info=debug_on)
         exit(1)
