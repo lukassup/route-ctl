@@ -263,21 +263,21 @@ batch_create_action.add_argument(
 )
 
 # batch-update subcommand
-batch_update_action = subparsers.add_parser(
-    'batch-update',
-    help=_('batch update or create items from a JSON file'),
-    parents=[
-        common_args,
-        config_args,
-    ]
-)
-batch_update_action.set_defaults(action=batch_update_items)
-batch_update_action.add_argument(
-    'source_file',
-    metavar='JSON_FILE',
-    type=argparse.FileType('r'),
-    help=_('JSON file'),
-)
+# batch_update_action = subparsers.add_parser(
+#     'batch-update',
+#     help=_('batch update or create items from a JSON file'),
+#     parents=[
+#         common_args,
+#         config_args,
+#     ]
+# )
+# batch_update_action.set_defaults(action=batch_update_items)
+# batch_update_action.add_argument(
+#     'source_file',
+#     metavar='JSON_FILE',
+#     type=argparse.FileType('r'),
+#     help=_('JSON file'),
+# )
 
 # create subcommand
 create_action = subparsers.add_parser(
@@ -292,28 +292,28 @@ create_action = subparsers.add_parser(
 create_action.set_defaults(action=create_or_update_item)
 
 # update subcommand
-update_action = subparsers.add_parser(
-    'update',
-    help=_('update an existing rotue'),
-    parents=[
-        common_args,
-        config_args,
-        create_update_parser,
-    ]
-)
-update_action.set_defaults(action=update_item)
+# update_action = subparsers.add_parser(
+#     'update',
+#     help=_('update an existing rotue'),
+#     parents=[
+#         common_args,
+#         config_args,
+#         create_update_parser,
+#     ]
+# )
+# update_action.set_defaults(action=update_item)
 
 # delete subcommand
-delete_action = subparsers.add_parser(
-    'delete',
-    help=_('delete routes by filter'),
-    parents=[
-        common_args,
-        config_args,
-        retrieve_delete_parser,
-    ]
-)
-delete_action.set_defaults(action=delete_items)
+# delete_action = subparsers.add_parser(
+#     'delete',
+#     help=_('delete routes by filter'),
+#     parents=[
+#         common_args,
+#         config_args,
+#         retrieve_delete_parser,
+#     ]
+# )
+# delete_action.set_defaults(action=delete_items)
 
 
 def main():
