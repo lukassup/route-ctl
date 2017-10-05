@@ -101,12 +101,9 @@ class TestCLI(unittest.TestCase):
             '-h',
             'list -h',
             'find -h',
-            'batch-create -h',
-            # 'batch-update -h',
+            'batch-insert -h',
             'batch-replace -h',
             'create -h',
-            # 'update -h',
-            # 'delete -h',
         ]
         for command in commands:
             with capture_output() as (stdout, stderr):
