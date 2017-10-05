@@ -55,7 +55,7 @@ def validate_item(route_file,
     return json.dumps(result, indent=2)
 
 
-def batch_create_items(route_file, source_file, *args, **kwargs):
+def batch_insert_items(route_file, source_file, *args, **kwargs):
     mgr = RouteManager(route_file)
     mgr.create_items(json_file=source_file)
 

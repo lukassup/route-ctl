@@ -48,9 +48,7 @@ class InvalidOperation(RouteError):
 
 class RouteManager(RouteParser, RouteBuilder):
 
-    def __init__(self,
-                 filename,
-                 dict_key='routes'):
+    def __init__(self, filename, dict_key='routes'):
         RouteParser.__init__(self)
         RouteBuilder.__init__(self)
         self.filename = filename
@@ -59,27 +57,27 @@ class RouteManager(RouteParser, RouteBuilder):
 
     def from_json(self, json_file):
         """Read items from a JSON file."""
-        self.__log.info(_('Loading entries from JSON file'))
+        self.__log.info(_('loading entries from JSON file'))
         return json.load(json_file)[self.__key]
 
     def __items_or_json(self, items, json_file):
-        """Mutually exclusive."""
+        """Pick either items or parse a JSON file which are mutually exclusive."""
         if json_file and not items:
             return self.from_json(json_file)
         elif items and not json_file:
             return items
         raise InvalidOperation(
-            _("Cannot use both arguments: 'items' and 'json_file'"))
+            _("cannot use both arguments: 'items' and 'json_file'"))
 
     def list_items(self):
         """List all entries."""
-        self.__log.info(_('Listing all entries'))
+        self.__log.info(_('listing all entries'))
         items = self.parse()
         return {self.__key: list(items)}
 
     def find_items(self, value, key, ignore_case=False, exact_match=True):
         """List entries matching key-value."""
-        self.__log.info(_('Listing matching entries'))
+        self.__log.info(_('listing entries matching criteria'))
         if not ignore_case:
             if exact_match:
                 matcher = lambda item: value == item.get(key, '')
@@ -94,7 +92,7 @@ class RouteManager(RouteParser, RouteBuilder):
         items = filter(matcher, self.parse())
         return {self.__key: list(items)}
 
-    def _find_same(self, item, items=None, keys=('network', 'netmask')):
+    def _find_same(self, item, items=None, keys=('name')):
         """Find all items with matching values for given set of keys."""
         items = items if items else self.parse()
         def same(this, item=item, keys=keys):
@@ -103,9 +101,22 @@ class RouteManager(RouteParser, RouteBuilder):
 
     def _exists(self, item, items=None):
         """Check if an entry is already present."""
-        self.__log.debug(_('Checking if entry exists'))
+        self.__log.debug(_('checking if entry exists'))
         items = items if items else self.parse()
-        return any(self._find_same(item, items))
+        found_with_same_name = any(self._find_same(item, items, keys=('name',)))
+        found_with_same_net = any(self._find_same(item, items, keys=('network', 'netmask')))
+        if found_with_same_name:
+            self.__log.warning(
+                _('entry already exists with the name: %r'),
+                json.dumps(item))
+            return True
+        elif found_with_same_net:
+            self.__log.warning(
+                _('entry already exists with the network/subnet pair: %r'),
+                json.dumps(item))
+            return True
+        return False
+
 
     def create_item(self, item, force=False):
         """Create a new entry."""
@@ -113,10 +124,10 @@ class RouteManager(RouteParser, RouteBuilder):
         if self._exists(item, items):
             if not force:
                 raise EntryAlreadyExistsError(
-                    _('Unable to create item. A matching entry already exists.'))
+                    _('unable to create item. A matching entry already exists.'))
             else:
-                self.__log.warning(_('Forcing route entry creation (dangerous)'))
-        self.__log.info(_('Creating a new entry'))
+                self.__log.warning(_('forcing route entry creation (dangerous)'))
+        self.__log.info(_('creating a new entry'))
         items.append(item)
         self.write(items)
 
@@ -134,14 +145,13 @@ class RouteManager(RouteParser, RouteBuilder):
                 current_items.append(item)
                 added += 1
         if conflicting == total:
-            raise EntryAlreadyExistsError(
-                _('Unable to create new entries. All of the entries '
-                  'conflict with existing ones.'))
+            self.__log.warning(_('no new entries added - all entries already exist'))
+            return
         elif conflicting > 0:
             self.__log.warning(
-                _("Unable to create %d out of %d entries due to "
-                  "conflict with existing entries."), conflicting, total)
-        self.__log.info(_('Creating %d entries'), added)
+                _('%d out of %d entries already exist'),
+                conflicting, total)
+        self.__log.info(_('creating %d entries'), added)
         self.write(current_items)
 
     def update_item(self, item, create=False):
@@ -150,17 +160,17 @@ class RouteManager(RouteParser, RouteBuilder):
         if not self._exists(item, items):
             if not create:
                 raise EntryNotFoundError(
-                    _('Unable to update entry. No matching entry found.'))
-            self.__log.info(_('Creating a new entry'))
+                    _('unable to update entry. No matching entry found.'))
+            self.__log.info(_('creating a new entry'))
             items.append(item)
         else:
-            self.__log.info(_('Updating an existing entry'))
+            self.__log.info(_('updating an existing entry'))
             raise NotImplementedError(_('Not implemented'))  # TODO
         self.write(items)
 
     def update_items(self, items=None, json_file=None, create=True):
         """Update many entries."""
-        self.__log.info(_('Updating entries'))
+        self.__log.info(_('updating entries'))
         new_items = self.__items_or_json(items, json_file)
         current_items = list(self.parse())  # eager read
         updated = 0

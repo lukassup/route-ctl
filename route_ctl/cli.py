@@ -10,7 +10,7 @@ import sys
 from gettext import translation
 
 from .actions import (
-    batch_create_items,
+    batch_insert_items,
     batch_replace_items,
     batch_update_items,
     create_or_update_item,
@@ -179,7 +179,7 @@ help_action.set_defaults(action=_help)
 # list subcommand
 list_action = subparsers.add_parser(
     'list',
-    help=_('list all routes'),
+    help=_('parse and list all routes'),
     parents=[
         common_args,
         config_args,
@@ -190,7 +190,7 @@ list_action.set_defaults(action=list_items)
 # find subcommand
 find_action = subparsers.add_parser(
     'find',
-    help=_('find routes by filter'),
+    help=_('find all routes matching criteria'),
     parents=[
         common_args,
         config_args,
@@ -231,7 +231,7 @@ find_action.set_defaults(action=find_items)
 # batch-replace subcommand
 batch_replace_action = subparsers.add_parser(
     'batch-replace',
-    help=_('batch replace items from a JSON file'),
+    help=_('replace all items in destination file from a JSON file'),
     parents=[
         common_args,
         config_args,
@@ -245,17 +245,17 @@ batch_replace_action.add_argument(
     help=_('JSON file'),
 )
 
-# batch-create subcommand
-batch_create_action = subparsers.add_parser(
-    'batch-create',
-    help=_('batch create items from a JSON file'),
+# batch-insert subcommand
+batch_insert_action = subparsers.add_parser(
+    'batch-insert',
+    help=_('batch insert new items from a JSON file'),
     parents=[
         common_args,
         config_args,
     ]
 )
-batch_create_action.set_defaults(action=batch_create_items)
-batch_create_action.add_argument(
+batch_insert_action.set_defaults(action=batch_insert_items)
+batch_insert_action.add_argument(
     'source_file',
     metavar='JSON_FILE',
     type=argparse.FileType('r'),
@@ -282,7 +282,7 @@ batch_create_action.add_argument(
 # create subcommand
 create_action = subparsers.add_parser(
     'create',
-    help=_('create or update a route'),
+    help=_('insert a new route'),
     parents=[
         common_args,
         config_args,
