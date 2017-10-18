@@ -39,7 +39,7 @@ common_args.add_argument(
     '--output',
     metavar='FILE',
     dest='out_file',
-    type=argparse.FileType('w'),
+    type=argparse.FileType('a'),
     default=sys.stdout,
     help=_('output file (default: stdout)'),
 )
