@@ -104,6 +104,7 @@ class RouteBuilder(object):
         tstamp = datetime.now().strftime(stamp)
         sfn = self.filename
         dfn = '{0}.{1}.backup'.format(self.filename, tstamp)
+        self.__log.debug(_('creating backup file (original: %r, backup: %r)'), sfn, dfn)
         copy(sfn, dfn)
 
     def __write(self, items, dest_file):
@@ -120,16 +121,15 @@ class RouteBuilder(object):
 
         Non-``atomic`` operation modifies the original file in place.
         """
-        self.__log.debug(_('Creating backup file'))
         self.backup()
         if atomic:
-            self.__log.debug(_('Opening a temporary file for writing (atomic operation)'))
+            self.__log.debug(_('opening a temporary file for writing (atomic operation)'))
             file_ = tempfile.NamedTemporaryFile(mode='w', delete=False)
         else:
-            self.__log.debug(_('Overwriting file in place (non-atomic operation)'))
+            self.__log.debug(_('overwriting file in place (non-atomic operation)'))
             file_ = open(self.filename, 'w')
-        self.__log.info(_('Writing entries to file'))
+        self.__log.info(_('writing entries to file: %r'), self.filename)
         self.__write(items, dest_file=file_)
         if atomic:
-            self.__log.debug(_('Moving temporary file over the original'))
+            self.__log.debug(_('moving temporary file over the original'))
             move(file_.name, self.filename)

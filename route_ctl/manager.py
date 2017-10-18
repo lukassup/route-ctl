@@ -57,7 +57,8 @@ class RouteManager(RouteParser, RouteBuilder):
 
     def from_json(self, json_file):
         """Read items from a JSON file."""
-        self.__log.info(_('loading entries from JSON file'))
+        file_name = getattr(json_file, 'name', repr(json_file))
+        self.__log.info(_('loading entries from JSON file: %r'), file_name)
         return json.load(json_file)[self.__key]
 
     def __items_or_json(self, items, json_file):
@@ -106,14 +107,10 @@ class RouteManager(RouteParser, RouteBuilder):
         found_with_same_name = any(self._find_same(item, items, keys=('name',)))
         found_with_same_net = any(self._find_same(item, items, keys=('network', 'netmask')))
         if found_with_same_name:
-            self.__log.warning(
-                _('entry already exists with the name: %r'),
-                json.dumps(item))
+            self.__log.debug(_('entry with matching name exists'))
             return True
         elif found_with_same_net:
-            self.__log.warning(
-                _('entry already exists with the network/subnet pair: %r'),
-                json.dumps(item))
+            self.__log.info(_('entry with matching subnet/netmask pair exists'))
             return True
         return False
 
@@ -140,8 +137,10 @@ class RouteManager(RouteParser, RouteBuilder):
         added = 0
         for item in new_items:
             if self._exists(item, current_items):
+                self.__log.debug(_('item already exists: %r'), json.dumps(item))
                 conflicting += 1
             else:
+                self.__log.info(_('adding item: %r'), json.dumps(item))
                 current_items.append(item)
                 added += 1
         if conflicting == total:
@@ -149,9 +148,9 @@ class RouteManager(RouteParser, RouteBuilder):
             return
         elif conflicting > 0:
             self.__log.warning(
-                _('%d out of %d entries already exist'),
+                _('%d out of %d entries already exist (skipped)'),
                 conflicting, total)
-        self.__log.info(_('creating %d entries'), added)
+        self.__log.info(_('inserting %d entries'), added)
         self.write(current_items)
 
     def update_item(self, item, create=False):
