@@ -87,3 +87,14 @@ Or test all supported versions in Docker containers:
     $ git clone https://github.com/lukassup/route-cli.git
     $ make docker-build
     $ make docker-test
+
+CentOS 6 installation with custom prefix
+----------------------------------------
+
+.. code-block:: bash
+
+    $ cat > install-script.sh EOF
+    python setup.py install --prefix=/usr/local --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
+    EOF
+    $ python setup.py bdist_rpm --install-script=./install-script.sh
+    $ rpm -Uvh ./dist/route-ctl-*.rpm
